@@ -14,10 +14,10 @@ Calcula automáticamente las corrientes que circulan por cada zona y determina s
 ## Instalación
 
 \`\`\`bash
-git clone https://github.com/TU_USUARIO/simulacion_mallas.git
+git clone https://github.com/runer0101/simulacion_mallas.git
 cd simulacion_mallas
 pip install flask numpy matplotlib
-python app.py
+python app.py o py app.py
 \`\`\`
 
 Abrir navegador en: \`http://localhost:5000\`
