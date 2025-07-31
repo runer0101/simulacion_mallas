@@ -1,0 +1,465 @@
+{#
+    index.html - Plantilla principal para la simulación de mallas residenciales
+    Autor: runer0101
+    Este archivo contiene la estructura HTML principal de la aplicación web.
+    Usa Jinja2 para variables dinámicas desde Flask.
+    Los comentarios explican cada sección para facilitar la exposición.
+#}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimización de sistemas de distribución de energía en instalaciones residenciales</title>
+    <!-- MathJax para mostrar ecuaciones matemáticas en formato LaTeX -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Enlace al archivo de estilos externo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Enlace al archivo de JavaScript externo -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</head>
+<body>
+    <!--
+        Encabezado principal de la página.
+        Muestra el título y una breve descripción del proyecto.
+    -->
+    <header>
+        <h1>Optimización de sistemas de distribución de energía en instalaciones residenciales</h1>
+        <p>Ejemplo de análisis de mallas en una vivienda con tres zonas principales</p>
+    </header>
+    <!--
+        main: Contenido principal de la aplicación.
+        Incluye introducción, diagrama SVG, formulario, resultados y explicaciones.
+    -->
+    <main>
+        <!--
+            Sección de introducción: Explica el objetivo y contexto del análisis de mallas.
+        -->
+        <section>
+            <h2 class="section-title">Introducción</h2>
+            <div class="explanation">
+                El <b>análisis de circuitos eléctricos en mallas</b> es fundamental para el diseño eficiente de sistemas de distribución de energía en viviendas. Utilizando el método de mallas, es posible calcular las corrientes que circulan por cada lazo del circuito, optimizando así el consumo y la seguridad eléctrica en instalaciones residenciales.<br><br>
+                <b>Este ejemplo representa una vivienda con tres zonas principales:</b> <br>
+                <ul>
+                    <li><b>Malla 1:</b> Sala y comedor</li>
+                    <li><b>Malla 2:</b> Cocina y lavandería</li>
+                    <li><b>Malla 3:</b> Dormitorios</li>
+                </ul>
+                Cada zona tiene su propio ramal, pero comparten parte del cableado y están alimentadas por diferentes circuitos derivados desde el tablero principal. Las resistencias representan tanto el cableado como la carga de los electrodomésticos y luminarias.
+            </div>
+        </section>
+        <!-- Apartado agrupado: Calculadora de mallas -->
+        <section class="calc-mallas-section">
+            <h2 class="section-title">Calculadora de mallas</h2>
+            
+            <!-- Primero: Circuito de malla -->
+            <div class="circuito-svg-box">
+                <h3 class="subsection-title">Circuito de malla</h3>
+                <div class="circuit-diagram" style="text-align:center;">
+                    <img 
+                        src="{{ url_for('circuito_png') }}?R1={{ vals['R1'] }}&R2={{ vals['R2'] }}&R3={{ vals['R3'] }}&R4={{ vals['R4'] }}&R5={{ vals['R5'] }}&R6={{ vals['R6'] }}&V1={{ vals['V1'] }}&V2={{ vals['V2'] }}&V3={{ vals['V3'] }}"
+                        alt="Circuito de mallas generado"
+                        style="max-width:100%; border:2px solid #2563eb; border-radius:8px; background:#222;"
+                    >
+                </div>
+            </div>
+                
+                <!-- Parámetros del circuito y resultados -->
+                <div class="formulario-box">
+                    <h3 class="subsection-title">Parámetros del circuito y simulación</h3>
+                    <form method="POST" action="#resultados" class="formulario">
+                        <fieldset>
+                            <legend>Valores de resistencias y voltajes</legend>
+                            <div class="form-row">
+                                <label for="R1">R₁ (Ω):</label>
+                                <input type="number" step="any" min="0.01" name="R1" id="R1" value="{{ vals['R1'] }}" required>
+                                <label for="R2">R₂ (Ω):</label>
+                                <input type="number" step="any" min="0.01" name="R2" id="R2" value="{{ vals['R2'] }}" required>
+                                <label for="R3">R₃ (Ω):</label>
+                                <input type="number" step="any" min="0.01" name="R3" id="R3" value="{{ vals['R3'] }}" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="R4">R₄ (Ω):</label>
+                                <input type="number" step="any" min="0.01" name="R4" id="R4" value="{{ vals['R4'] }}" required>
+                                <label for="R5">R₅ (Ω):</label>
+                                <input type="number" step="any" min="0.01" name="R5" id="R5" value="{{ vals['R5'] }}" required>
+                                <label for="R6">R₆ (Ω):</label>
+                                <input type="number" step="any" min="0.01" name="R6" id="R6" value="{{ vals['R6'] }}" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="V1">V₁ (V):</label>
+                                <input type="number" step="any" name="V1" id="V1" value="{{ vals['V1'] }}" required>
+                                <label for="V2">V₂ (V):</label>
+                                <input type="number" step="any" name="V2" id="V2" value="{{ vals['V2'] }}" required>
+                                <label for="V3">V₃ (V):</label>
+                                <input type="number" step="any" name="V3" id="V3" value="{{ vals['V3'] }}" required>
+                            </div>
+                            <div class="form-row">
+                                <button type="submit">Calcular</button>
+                                <button type="button" onclick="cargarEjemplo()">Cargar ejemplo</button>
+                            </div>
+                            {% if error %}
+                            <div class="form-error" style="color:#b91c1c; font-weight:bold; margin-top:8px;">{{ error }}</div>
+                            {% endif %}
+                        </fieldset>
+                    </form>
+                    
+                    <!-- Resultados integrados -->
+                    {% if I1 is not none %}
+                    <div id="resultados" class="resultados-section" style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 30px;">
+                        <h4 class="subsection-title">Resultados de la simulación</h4>
+                        <div class="results-grid">
+                            <div class="result-card malla1">
+                                <h4>Malla 1 - Sala y Comedor</h4>
+                                <div class="current-value">I₁ = {{ "%.3f"|format(I1) }} A</div>
+                                <div class="interpretation">
+                                    {% if I1 > 0 %}
+                                    ✓ Corriente en sentido horario
+                                    {% else %}
+                                    ↻ Corriente en sentido antihorario
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="result-card malla2">
+                                <h4>Malla 2 - Cocina y Lavandería</h4>
+                                <div class="current-value">I₂ = {{ "%.3f"|format(I2) }} A</div>
+                                <div class="interpretation">
+                                    {% if I2 > 0 %}
+                                    ✓ Corriente en sentido horario
+                                    {% else %}
+                                    ↻ Corriente en sentido antihorario
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="result-card malla3">
+                                <h4>Malla 3 - Dormitorios</h4>
+                                <div class="current-value">I₃ = {{ "%.3f"|format(I3) }} A</div>
+                                <div class="interpretation">
+                                    {% if I3 > 0 %}
+                                    ✓ Corriente en sentido horario
+                                    {% else %}
+                                    ↻ Corriente en sentido antihorario
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="explanation">
+                            <b>Interpretación:</b> Estos valores permiten analizar el comportamiento del circuito y tomar decisiones para optimizar la distribución de energía, reducir pérdidas y mejorar la seguridad eléctrica en el hogar.
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+        </section>
+        
+        <!-- Sección de matemáticas -->
+        <section class="matematicas-section">
+            <h2 class="section-title">Resolución matemática paso a paso</h2>
+            
+            <!-- Paso 0: Identificación del circuito -->
+            <div class="math-step">
+                <h3 class="subsection-title">Paso 0: Identificación del circuito y mallas</h3>
+                <div class="math-content">
+                    <div class="explanation">
+                        <b>Análisis del circuito residencial:</b>
+                        <ul>
+                            <li><b>Malla 1 (I₁):</b> Tablero → R1 → Sala → R6 → R4 → Tablero</li>
+                            <li><b>Malla 2 (I₂):</b> Tablero → R2 → Cocina → R5 → R4 → Tablero</li>
+                            <li><b>Malla 3 (I₃):</b> Tablero → R3 → Dormitorios → R5 → R6 → Tablero</li>
+                        </ul>
+                        <b>Convención:</b> Todas las corrientes de malla se asumen en sentido horario.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Paso 1: Ley de Kirchhoff -->
+            <div class="math-step">
+                <h3 class="subsection-title">Paso 1: Aplicación de la Ley de Kirchhoff de Voltajes (LKV)</h3>
+                <div class="math-content">
+                    <div class="explanation">
+                        <b>Principio:</b> La suma algebraica de voltajes en cualquier lazo cerrado es cero.<br>
+                        <b>Fórmula general:</b> ∑ V = 0 (suma de caídas de tensión = suma de fuentes)
+                    </div>
+                    
+                    <h4>Malla 1 (Sala/Comedor):</h4>
+                    <div class="math-display">
+                        $$+V_1 - R_1 \cdot I_1 - R_6 \cdot (I_1 - I_3) - R_4 \cdot (I_1 - I_2) = 0$$
+                    </div>
+                    <div class="explanation">
+                        <b>Desglose:</b>
+                        <ul>
+                            <li>+V₁: Fuente de voltaje (sube el potencial)</li>
+                            <li>-R₁·I₁: Caída en resistencia propia de la sala</li>
+                            <li>-R₆·(I₁-I₃): Caída en resistencia compartida con dormitorios</li>
+                            <li>-R₄·(I₁-I₂): Caída en resistencia compartida con cocina</li>
+                        </ul>
+                    </div>
+                    
+                    <h4>Malla 2 (Cocina/Lavandería):</h4>
+                    <div class="math-display">
+                        $$+V_2 - R_2 \cdot I_2 - R_4 \cdot (I_2 - I_1) - R_5 \cdot (I_2 - I_3) = 0$$
+                    </div>
+                    <div class="explanation">
+                        <b>Desglose:</b>
+                        <ul>
+                            <li>+V₂: Fuente de voltaje (sube el potencial)</li>
+                            <li>-R₂·I₂: Caída en resistencia propia de la cocina</li>
+                            <li>-R₄·(I₂-I₁): Caída en resistencia compartida con sala</li>
+                            <li>-R₅·(I₂-I₃): Caída en resistencia compartida con dormitorios</li>
+                        </ul>
+                    </div>
+                    
+                    <h4>Malla 3 (Dormitorios):</h4>
+                    <div class="math-display">
+                        $$+V_3 - R_3 \cdot I_3 - R_5 \cdot (I_3 - I_2) - R_6 \cdot (I_3 - I_1) = 0$$
+                    </div>
+                    <div class="explanation">
+                        <b>Desglose:</b>
+                        <ul>
+                            <li>+V₃: Fuente de voltaje (sube el potencial)</li>
+                            <li>-R₃·I₃: Caída en resistencia propia de los dormitorios</li>
+                            <li>-R₅·(I₃-I₂): Caída en resistencia compartida con cocina</li>
+                            <li>-R₆·(I₃-I₁): Caída en resistencia compartida con sala</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 2: Reorganización algebraica -->
+            <div class="math-step">
+                <h3 class="subsection-title">Paso 2: Reorganización y simplificación algebraica</h3>
+                <div class="math-content">
+                    <div class="explanation">
+                        <b>Expandimos y agrupamos términos por corriente:</b>
+                    </div>
+                    
+                    <h4>De la Malla 1:</h4>
+                    <div class="math-display">
+                        $$V_1 = R_1 I_1 + R_6(I_1 - I_3) + R_4(I_1 - I_2)$$
+                        $$V_1 = R_1 I_1 + R_6 I_1 - R_6 I_3 + R_4 I_1 - R_4 I_2$$
+                        $$V_1 = (R_1 + R_6 + R_4)I_1 - R_4 I_2 - R_6 I_3$$
+                    </div>
+                    
+                    <h4>De la Malla 2:</h4>
+                    <div class="math-display">
+                        $$V_2 = R_2 I_2 + R_4(I_2 - I_1) + R_5(I_2 - I_3)$$
+                        $$V_2 = R_2 I_2 + R_4 I_2 - R_4 I_1 + R_5 I_2 - R_5 I_3$$
+                        $$V_2 = -R_4 I_1 + (R_2 + R_4 + R_5)I_2 - R_5 I_3$$
+                    </div>
+                    
+                    <h4>De la Malla 3:</h4>
+                    <div class="math-display">
+                        $$V_3 = R_3 I_3 + R_5(I_3 - I_2) + R_6(I_3 - I_1)$$
+                        $$V_3 = R_3 I_3 + R_5 I_3 - R_5 I_2 + R_6 I_3 - R_6 I_1$$
+                        $$V_3 = -R_6 I_1 - R_5 I_2 + (R_3 + R_5 + R_6)I_3$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema de ecuaciones -->
+            <div class="math-step">
+                <h3 class="subsection-title">Paso 3: Sistema de ecuaciones lineales final</h3>
+                <div class="math-content">
+                    <div class="math-display">
+                        $$\begin{cases}
+                        (R_1+R_4+R_6)I_1 - R_4 I_2 - R_6 I_3 = V_1 \\
+                        -R_4 I_1 + (R_2+R_4+R_5)I_2 - R_5 I_3 = V_2 \\
+                        -R_6 I_1 - R_5 I_2 + (R_3+R_5+R_6)I_3 = V_3
+                        \end{cases}$$
+                    </div>
+                    <div class="explanation">
+                        <b>Observaciones importantes:</b>
+                        <ul>
+                            <li><b>Diagonal principal:</b> Suma de todas las resistencias en cada malla</li>
+                            <li><b>Términos cruzados:</b> Resistencias compartidas entre mallas (siempre negativos)</li>
+                            <li><b>Simetría:</b> La matriz de coeficientes es simétrica (A[i][j] = A[j][i])</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Matriz del sistema con valores -->
+            {% if I1 is not none %}
+            <div class="math-step">
+                <h3 class="subsection-title">Paso 4: Sustitución de valores numéricos</h3>
+                <div class="math-content">
+                    <div class="explanation">
+                        <b>Valores del circuito actual:</b><br>
+                        R₁={{ vals['R1'] }}Ω, R₂={{ vals['R2'] }}Ω, R₃={{ vals['R3'] }}Ω, R₄={{ vals['R4'] }}Ω, R₅={{ vals['R5'] }}Ω, R₆={{ vals['R6'] }}Ω<br>
+                        V₁={{ vals['V1'] }}V, V₂={{ vals['V2'] }}V, V₃={{ vals['V3'] }}V
+                    </div>
+                    
+                    <h4>Cálculo de coeficientes:</h4>
+                    <div class="math-display">
+                        $$\begin{align}
+                        a_{11} &= R_1 + R_4 + R_6 = {{ vals['R1'] }} + {{ vals['R4'] }} + {{ vals['R6'] }} = {{ "%.1f"|format(A[0][0]) }}\text{Ω} \\
+                        a_{22} &= R_2 + R_4 + R_5 = {{ vals['R2'] }} + {{ vals['R4'] }} + {{ vals['R5'] }} = {{ "%.1f"|format(A[1][1]) }}\text{Ω} \\
+                        a_{33} &= R_3 + R_5 + R_6 = {{ vals['R3'] }} + {{ vals['R5'] }} + {{ vals['R6'] }} = {{ "%.1f"|format(A[2][2]) }}\text{Ω}
+                        \end{align}$$
+                    </div>
+                    
+                    <h4>Sistema matricial resultante:</h4>
+                    <div class="math-display">
+                        $$\begin{bmatrix} 
+                        {{ "%.1f"|format(A[0][0]) }} & {{ "%.1f"|format(A[0][1]) }} & {{ "%.1f"|format(A[0][2]) }} \\
+                        {{ "%.1f"|format(A[1][0]) }} & {{ "%.1f"|format(A[1][1]) }} & {{ "%.1f"|format(A[1][2]) }} \\
+                        {{ "%.1f"|format(A[2][0]) }} & {{ "%.1f"|format(A[2][1]) }} & {{ "%.1f"|format(A[2][2]) }}
+                        \end{bmatrix} 
+                        \begin{bmatrix} I_1 \\ I_2 \\ I_3 \end{bmatrix} = 
+                        \begin{bmatrix} {{ "%.1f"|format(B[0]) }} \\ {{ "%.1f"|format(B[1]) }} \\ {{ "%.1f"|format(B[2]) }} \end{bmatrix}$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Método de resolución -->
+            <div class="math-step">
+                <h3 class="subsection-title">Paso 5: Método de resolución (Eliminación Gaussiana)</h3>
+                <div class="math-content">
+                    <div class="explanation">
+                        <b>Proceso de eliminación gaussiana con pivoteo parcial:</b>
+                    </div>
+                    
+                    <h4>1. Verificación de no singularidad:</h4>
+                    <div class="math-display">
+                        $$\det(A) = {{ "%.2f"|format(A[0][0]*(A[1][1]*A[2][2]-A[1][2]*A[2][1]) - A[0][1]*(A[1][0]*A[2][2]-A[1][2]*A[2][0]) + A[0][2]*(A[1][0]*A[2][1]-A[1][1]*A[2][0])) }}$$
+                    </div>
+                    <div class="explanation">
+                        Como det(A) ≠ 0, el sistema tiene solución única.
+                    </div>
+                    
+                    <h4>2. Algoritmo computacional:</h4>
+                    <div class="explanation">
+                        <ol>
+                            <li>Formar matriz aumentada [A|B]</li>
+                            <li>Reducir a forma escalonada por filas</li>
+                            <li>Aplicar sustitución hacia atrás</li>
+                            <li>Obtener vector solución I = [I₁, I₂, I₃]ᵀ</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Solución final -->
+            <div class="math-step">
+                <h3 class="subsection-title">Paso 6: Solución y verificación</h3>
+                <div class="math-content">
+                    <div class="math-display">
+                        $$\begin{bmatrix} I_1 \\ I_2 \\ I_3 \end{bmatrix} = 
+                        \begin{bmatrix} {{ "%.6f"|format(I1) }} \\ {{ "%.6f"|format(I2) }} \\ {{ "%.6f"|format(I3) }} \end{bmatrix} \text{ A}$$
+                    </div>
+                    
+                    <h4>Verificación (sustitución en ecuación 1):</h4>
+                    <div class="math-display">
+                        $${{ "%.1f"|format(A[0][0]) }} \times {{ "%.6f"|format(I1) }} + {{ "%.1f"|format(A[0][1]) }} \times {{ "%.6f"|format(I2) }} + {{ "%.1f"|format(A[0][2]) }} \times {{ "%.6f"|format(I3) }}$$
+                        $$= {{ "%.3f"|format(A[0][0]*I1 + A[0][1]*I2 + A[0][2]*I3) }} \text{ V} \approx {{ "%.1f"|format(B[0]) }} \text{ V} \quad \checkmark$$
+                    </div>
+                    
+                    <div class="explanation">
+                        <b>Interpretación física:</b>
+                        <ul>
+                            <li><b>I₁ = {{ "%.3f"|format(I1) }} A:</b> {% if I1 > 0 %}Corriente horaria en malla 1{% else %}Corriente antihoraria en malla 1{% endif %}</li>
+                            <li><b>I₂ = {{ "%.3f"|format(I2) }} A:</b> {% if I2 > 0 %}Corriente horaria en malla 2{% else %}Corriente antihoraria en malla 2{% endif %}</li>
+                            <li><b>I₃ = {{ "%.3f"|format(I3) }} A:</b> {% if I3 > 0 %}Corriente horaria en malla 3{% else %}Corriente antihoraria en malla 3{% endif %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis de resultados -->
+            <div class="math-step">
+                <h3 class="subsection-title">Paso 7: Análisis de corrientes reales en componentes</h3>
+                <div class="math-content">
+                    <div class="explanation">
+                        <b>Corrientes en resistencias compartidas:</b>
+                    </div>
+                    
+                    <h4>Resistencia R₄ (Conexión Sala-Cocina):</h4>
+                    <div class="math-display">
+                        $$I_{R4} = I_1 - I_2 = {{ "%.3f"|format(I1) }} - {{ "%.3f"|format(I2) }} = {{ "%.3f"|format(I1-I2) }} \text{ A}$$
+                    </div>
+                    
+                    <h4>Resistencia R₅ (Conexión Cocina-Dormitorios):</h4>
+                    <div class="math-display">
+                        $$I_{R5} = I_2 - I_3 = {{ "%.3f"|format(I2) }} - {{ "%.3f"|format(I3) }} = {{ "%.3f"|format(I2-I3) }} \text{ A}$$
+                    </div>
+                    
+                    <h4>Resistencia R₆ (Conexión Dormitorios-Sala):</h4>
+                    <div class="math-display">
+                        $$I_{R6} = I_1 - I_3 = {{ "%.3f"|format(I1) }} - {{ "%.3f"|format(I3) }} = {{ "%.3f"|format(I1-I3) }} \text{ A}$$
+                    </div>
+                    
+                    <div class="explanation">
+                        <b>Potencia disipada total:</b>
+                        $$P_{total} = I_1^2 R_1 + I_2^2 R_2 + I_3^2 R_3 + (I_1-I_2)^2 R_4 + (I_2-I_3)^2 R_5 + (I_1-I_3)^2 R_6$$
+                        $$P_{total} = {{ "%.3f"|format(I1**2 * vals['R1'] + I2**2 * vals['R2'] + I3**2 * vals['R3'] + (I1-I2)**2 * vals['R4'] + (I2-I3)**2 * vals['R5'] + (I1-I3)**2 * vals['R6']) }} \text{ W}$$
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Metodología -->
+        <section class="metodologia-section">
+            <h2 class="section-title">¿Cómo se calculan las corrientes de malla?</h2>
+            <div class="explanation">
+                <ol>
+                    <li><b>Identificación de las mallas:</b><br>
+                        Observa el circuito y define cada lazo independiente (malla). Asigna una corriente a cada malla (por ejemplo, I₁, I₂, I₃), normalmente en sentido horario.
+                    </li>
+                    <li><b>Aplicación de la Ley de Kirchhoff de Voltajes (LKV):</b><br>
+                        Para cada malla, recorre el lazo sumando las caídas y subidas de voltaje (resistencias y fuentes). La suma algebraica de voltajes en cada malla debe ser igual a cero.<br>
+                    </li>
+                    <li><b>Planteamiento del sistema de ecuaciones:</b><br>
+                        Escribe una ecuación para cada malla. Si dos mallas comparten una resistencia, la caída de tensión en esa resistencia depende de la diferencia de corrientes.<br>
+                    </li>
+                    <li><b>Resolución del sistema:</b><br>
+                        Resuelve el sistema de ecuaciones lineales usando métodos como eliminación gaussiana, regla de Cramer, o herramientas computacionales.<br>
+                        <b>Ventaja:</b> Es útil para sistemas más grandes y se puede automatizar con software como Python y NumPy.<br>
+                    </li>
+                    <li><b>Interpretación de resultados:</b><br>
+                        Analiza el sentido y magnitud de las corrientes. Un valor negativo indica que la corriente real va en sentido opuesto al supuesto.<br>
+                    </li>
+                </ol>
+                <b>Resumen:</b> El método de mallas combina la Ley de Kirchhoff, el álgebra de matrices y el cálculo de determinantes para resolver circuitos complejos. El método de Cramer y el uso de matrices inversas son herramientas poderosas para encontrar las corrientes en cada malla.<br>
+                <br>
+                <b>¿Quieres saber más?</b> Puedes consultar libros de circuitos eléctricos, álgebra lineal y recursos en línea para profundizar en el uso de matrices y determinantes en ingeniería eléctrica.
+            </div>
+        </section>
+        <!--
+            Sección final: Resalta la importancia del análisis de mallas en instalaciones residenciales.
+        -->
+        <section>
+            <h2 class="section-title">Importancia del análisis de mallas</h2>
+            <div class="explanation">
+                El método de mallas facilita el diseño eficiente de sistemas eléctricos residenciales, permitiendo:
+                <ul>
+                    <li>Optimizar el uso de materiales y energía.</li>
+                    <li>Prevenir sobrecargas y fallos eléctricos.</li>
+                    <li>Garantizar la seguridad de los habitantes.</li>
+                    <li>Reducir costos de instalación y operación.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+    <!--
+        Pie de página: Información de autoría y tema del proyecto.
+    -->
+    <footer class="footer">
+        &copy; 2025 - Simulación de Circuitos en Mallas | Proyecto académico UPDS<br>
+        Tema: Optimización de sistemas de distribución de energía en instalaciones residenciales
+    </footer>
+</body>
+</html>

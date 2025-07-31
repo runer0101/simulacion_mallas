@@ -1,0 +1,704 @@
+/*
+    styles.css - Estilos para la simulación de mallas residenciales
+    Autor: runer0101
+    Este archivo contiene los estilos visuales para la aplicación web.
+    Los comentarios explican cada bloque para facilitar la exposición.
+*/
+
+/*
+    Estilo general del cuerpo de la página: tipografía y fondo degradado.
+*/
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(120deg, #38bdf8 0%, #fff 100%);
+    margin: 0;
+    padding: 0;
+}
+/*
+    Encabezado: color de fondo, texto y sombra.
+*/
+header {
+    background: #0ea5e9;
+    color: #fff;
+    padding: 3vw 0 1vw 0;
+    text-align: center;
+    box-shadow: 0 0.2vw 0.8vw rgba(14,165,233,0.08);
+}
+/*
+    Título principal: tamaño y espaciado.
+*/
+header h1 {
+    margin: 0;
+    font-size: 3vw;
+    letter-spacing: 0.1vw;
+}
+/*
+    Subtítulo: color y tamaño.
+*/
+header p {
+    margin: 1vw 0 0 0;
+    font-size: 1.2vw;
+    color: #e0e7ff;
+}
+/*
+    Contenedor principal: fondo blanco, bordes redondeados y sombra.
+*/
+main {
+    background: #fff;
+    max-width: 90vw;
+    margin: 4vw auto 2vw auto;
+    border-radius: 1vw;
+    box-shadow: 0 0.4vw 2.4vw rgba(14,165,233,0.10);
+    padding: 3vw 4vw 2vw 4vw;
+}
+/*
+    Espaciado entre secciones.
+*/
+section {
+    margin-bottom: 2.5%;
+}
+/*
+    Títulos de sección: color y borde decorativo.
+*/
+.section-title {
+    color: #0ea5e9;
+    font-size: 1.5vw;
+    margin-top: 0;
+    margin-bottom: 1vw;
+    border-left: 0.5vw solid #38bdf8;
+    padding-left: 1vw;
+}
+/*
+    Bloques explicativos: fondo y borde lateral.
+*/
+.explanation {
+    background: #e0f2fe;
+    border-left: 0.5vw solid #38bdf8;
+    padding: 1.2vw 1.5vw;
+    border-radius: 0.7vw;
+    margin-bottom: 1.5vw;
+    color: #0a2540;
+}
+/*
+    Sección de descripción: fondo y borde naranja.
+*/
+.desc-section {
+    background: #e0f2fe;
+    border-left: 0.5vw solid #0ea5e9;
+    padding: 1.2vw 1.5vw;
+    border-radius: 0.7vw;
+    margin-bottom: 1.5vw;
+    color: #0a2540;
+}
+/*
+    Resultados: fondo, borde y tipografía.
+*/
+.results {
+    background: #e0f2fe;
+    border-radius: 1vw;
+    padding: 1.5vw 2vw;
+    margin: 1.5vw 0;
+    font-size: 1.2vw;
+    color: #0a2540;
+    border: 0.1vw solid #38bdf8;
+}
+/*
+    Diagrama SVG: centrado y espaciado.
+*/
+.circuit-diagram {
+    display: flex;
+    justify-content: center;
+    margin: 2vw 0 1vw 0;
+}
+/*
+    Pie de página: color y alineación.
+*/
+.footer {
+    text-align: center;
+    color: #0ea5e9;
+    font-size: 1vw;
+    margin-bottom: 1vw;
+}
+/*
+    Adaptación responsiva para pantallas pequeñas.
+*/
+@media (max-width: 950px) {
+    main {
+        padding: 4vw 2vw;
+    }
+}
+/*
+    Bloques de ecuaciones matemáticas: fondo y espaciado.
+*/
+.math-block {
+    background: #e0f2fe;
+    border-radius: 0.7vw;
+    padding: 1vw 1.5vw;
+    margin: 1vw 0 1.5vw 0;
+    font-size: 1vw;
+    overflow-x: auto;
+}
+/*
+    Sección del formulario: fondo y borde.
+*/
+.form-section {
+    background: #e0f2fe;
+    border: 0.1vw solid #38bdf8;
+    border-radius: 1vw;
+    padding: 1.5vw 2vw;
+    margin-bottom: 2vw;
+}
+/*
+    Filas del formulario: disposición flexible y espaciado.
+*/
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1vw;
+    margin-bottom: 1vw;
+}
+/*
+    Etiquetas del formulario: color y peso de fuente.
+*/
+.form-row label {
+    min-width: 5vw;
+    font-weight: 500;
+    color: #0a2540;
+}
+/*
+    Campos de entrada: tamaño y borde.
+*/
+.form-row input {
+    width: 7vw;
+    padding: 0.3vw 0.7vw;
+    border: 0.1vw solid #38bdf8;
+    border-radius: 0.5vw;
+    font-size: 1vw;
+}
+/*
+    Botón de acciones del formulario: espaciado.
+*/
+.form-actions {
+    margin-top: 1vw;
+}
+/*
+    Botón principal: color, borde y estilo.
+*/
+.form-actions button {
+    background: #0ea5e9;
+    color: #fff;
+    border: none;
+    border-radius: 0.5vw;
+    padding: 0.7vw 2vw;
+    font-size: 1vw;
+    cursor: pointer;
+}
+/*
+    Efecto hover en el botón.
+*/
+.form-actions button:hover {
+    background: #38bdf8;
+}
+/*
+    Mensaje de error: color y peso de fuente.
+*/
+.error-msg {
+    color: #dc2626;
+    font-weight: 500;
+    margin-bottom: 1vw;
+}
+/*
+    Explicación de la calculadora: color y tamaño de fuente.
+*/
+.calc-explanation {
+    color: #0a2540;
+    font-size: 1vw;
+    margin-bottom: 1vw;
+}
+/*
+    Animación de flecha (no usada actualmente).
+*/
+.arrow-anim {
+    animation: moveArrow 1.2s linear infinite alternate;
+}
+/*
+    Definición de la animación de flecha.
+*/
+@keyframes moveArrow {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-1.8vw); }
+}
+
+/* Nuevos estilos para la calculadora de mallas mejorada */
+.calc-mallas-section {
+    background: #f8fafc;
+    border-radius: 1vw;
+    padding: 2vw;
+    margin-bottom: 2vw;
+    border: 0.1vw solid #e2e8f0;
+}
+
+.calc-mallas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2vw;
+}
+
+.circuito-svg-box, .formulario-box {
+    background: #fff;
+    border-radius: 0.8vw;
+    padding: 1.5vw;
+    box-shadow: 0 0.2vw 0.8vw rgba(0,0,0,0.1);
+}
+
+.subsection-title {
+    color: #1e293b;
+    font-size: 1.2vw;
+    margin: 0 0 1vw 0;
+    padding-bottom: 0.5vw;
+    border-bottom: 0.2vw solid #e2e8f0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1vw;
+    margin-bottom: 1vw;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3vw;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.9vw;
+}
+
+.form-group input {
+    padding: 0.5vw;
+    border: 0.2vw solid #e2e8f0;
+    border-radius: 0.4vw;
+    font-size: 0.9vw;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+.btn-calcular {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    padding: 1vw 2vw;
+    border-radius: 0.5vw;
+    font-size: 1vw;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-calcular:hover {
+    transform: translateY(-0.2vw);
+    box-shadow: 0 0.4vw 1.2vw rgba(59, 130, 246, 0.4);
+}
+
+/* Estilos para resultados mejorados */
+.resultados-section {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border-radius: 1vw;
+    padding: 2vw;
+    margin-bottom: 2vw;
+    border: 0.1vw solid #0ea5e9;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5vw;
+    margin-bottom: 1.5vw;
+}
+
+.result-card {
+    background: white;
+    border-radius: 0.8vw;
+    padding: 1.5vw;
+    text-align: center;
+    box-shadow: 0 0.2vw 0.8vw rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.result-card:hover {
+    transform: translateY(-0.2vw);
+}
+
+.result-card.malla1 {
+    border-left: 0.4vw solid #6366f1;
+}
+
+.result-card.malla2 {
+    border-left: 0.4vw solid #0ea5e9;
+}
+
+.result-card.malla3 {
+    border-left: 0.4vw solid #e11d48;
+}
+
+.result-card h4 {
+    margin: 0 0 1vw 0;
+    color: #1e293b;
+    font-size: 1vw;
+}
+
+.current-value {
+    font-size: 1.5vw;
+    font-weight: bold;
+    color: #0ea5e9;
+    margin-bottom: 0.5vw;
+}
+
+.interpretation {
+    font-size: 0.8vw;
+    color: #64748b;
+}
+
+/* Estilos para sección matemática */
+.matematicas-section {
+    background: #fefce8;
+    border-radius: 1vw;
+    padding: 2vw;
+    margin-bottom: 2vw;
+    border: 0.1vw solid #eab308;
+}
+
+.math-step {
+    margin-bottom: 2vw;
+    background: white;
+    border-radius: 0.8vw;
+    padding: 1.5vw;
+    box-shadow: 0 0.2vw 0.4vw rgba(0,0,0,0.05);
+}
+
+.math-content {
+    margin-top: 1vw;
+}
+
+.math-display {
+    background: #f8fafc;
+    border-radius: 0.5vw;
+    padding: 1vw;
+    margin: 1vw 0;
+    text-align: center;
+    overflow-x: auto;
+}
+
+.metodologia-section {
+    background: #f0fdf4;
+    border-radius: 1vw;
+    padding: 2vw;
+    margin-bottom: 2vw;
+    border: 0.1vw solid #22c55e;
+}
+
+/* Responsive design mejorado */
+@media (max-width: 1200px) {
+    .calc-mallas-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .results-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    header h1 {
+        font-size: 5vw;
+    }
+    
+    header p {
+        font-size: 3vw;
+    }
+    
+    .section-title {
+        font-size: 4vw;
+    }
+    
+    .subsection-title {
+        font-size: 3vw;
+    }
+}
+
+/* Estilos para validación de formularios */
+.form-group input.error {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.form-group input.success {
+    border-color: #22c55e;
+    background-color: #f0fdf4;
+}
+
+.field-error {
+    color: #ef4444;
+    font-size: 0.7vw;
+    margin-top: 0.2vw;
+    font-weight: 500;
+}
+
+.general-error {
+    background: #fef2f2;
+    border: 0.1vw solid #ef4444;
+    border-radius: 0.5vw;
+    padding: 1vw;
+    margin-top: 1vw;
+    display: none;
+}
+
+/* Animaciones mejoradas */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(2vw);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in {
+    animation: slideIn 0.6s ease-out forwards;
+}
+
+.result-card {
+    opacity: 0;
+    animation: slideIn 0.6s ease-out forwards;
+}
+
+/* Efectos hover mejorados */
+.result-card:hover {
+    transform: translateY(-0.4vw);
+    box-shadow: 0 0.8vw 2.4vw rgba(0,0,0,0.15);
+}
+
+.btn-calcular:hover {
+    transform: translateY(-0.2vw);
+    box-shadow: 0 0.6vw 2vw rgba(59, 130, 246, 0.5);
+}
+
+.btn-calcular:active {
+    transform: translateY(0);
+}
+
+/* Estilo para elementos resaltados del SVG */
+.svg-highlight {
+    filter: brightness(1.3) drop-shadow(0 0 0.8vw rgba(59, 130, 246, 0.6));
+    transition: filter 0.3s ease;
+}
+
+/* Tooltips mejorados */
+input[title]:hover {
+    position: relative;
+}
+
+/* Notificaciones */
+.notification {
+    font-weight: 600;
+    font-size: 0.9vw;
+}
+
+/* Estados de carga */
+.btn-calcular:disabled {
+    cursor: not-allowed;
+    background: #94a3b8;
+}
+
+/* Animaciones */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes highlight {
+    0% { 
+        transform: scale(1);
+        box-shadow: none;
+    }
+    50% { 
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: none;
+    }
+}
+
+@keyframes slideInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in {
+    animation: slideInUp 0.6s ease-out forwards;
+}
+
+.highlight-results {
+    animation: highlight 2s ease-in-out;
+}
+
+/* Mejoras responsivas para JavaScript */
+@media (max-width: 768px) {
+    .field-error {
+        font-size: 2vw;
+    }
+    
+    .notification {
+        font-size: 3vw;
+        right: 1%;
+        left: 1%;
+        text-align: center;
+    }
+}
+
+/* Botón de descarga de imágenes */
+.download-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    color: #fff;
+    border: none;
+    border-radius: 0.5vw;
+    padding: 0.7vw 2vw;
+    font-size: 1vw;
+    font-weight: 600;
+    text-decoration: none;
+    margin: 0.5vw 0;
+    box-shadow: 0 0.2vw 0.8vw rgba(14,165,233,0.10);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.download-btn:hover {
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    transform: translateY(-0.1vw) scale(1.03);
+    box-shadow: 0 0.4vw 1.2vw rgba(14,165,233,0.18);
+}
+
+/* Mejoras para el formulario */
+form.formulario fieldset {
+    border: 0.15vw solid #38bdf8;
+    border-radius: 0.7vw;
+    background: #f0f9ff;
+    padding: 2vw 2vw 1vw 2vw;
+    margin-bottom: 2vw;
+    box-shadow: 0 0.2vw 0.8vw rgba(14,165,233,0.08);
+}
+form.formulario legend {
+    color: #0ea5e9;
+    font-size: 1.2vw;
+    font-weight: 600;
+    padding: 0 0.5vw;
+}
+form.formulario .form-row {
+    margin-bottom: 1vw;
+    gap: 1vw;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+form.formulario label {
+    min-width: 4vw;
+    font-weight: 500;
+    color: #0a2540;
+    font-size: 1vw;
+}
+form.formulario input[type="number"] {
+    width: 7vw;
+    padding: 0.4vw 0.7vw;
+    border: 0.1vw solid #38bdf8;
+    border-radius: 0.5vw;
+    font-size: 1vw;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+form.formulario input[type="number"]:focus {
+    border-color: #0ea5e9;
+    outline: none;
+}
+form.formulario button[type="submit"],
+form.formulario button[type="button"] {
+    background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    color: #fff;
+    border: none;
+    border-radius: 0.5vw;
+    padding: 0.7vw 2vw;
+    font-size: 1vw;
+    font-weight: 600;
+    margin-right: 1vw;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+form.formulario button[type="submit"]:hover,
+form.formulario button[type="button"]:hover {
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    transform: translateY(-0.1vw) scale(1.03);
+    box-shadow: 0 0.4vw 1.2vw rgba(14,165,233,0.18);
+}
+.form-error {
+    color: #b91c1c;
+    font-weight: bold;
+    margin-top: 8px;
+    font-size: 1vw;
+}
+
+/* Mejoras responsivas para el formulario y botones */
+@media (max-width: 900px) {
+    form.formulario input[type="number"] {
+        width: 90%;
+        font-size: 2vw;
+    }
+    form.formulario label {
+        font-size: 2vw;
+    }
+    .download-btn {
+        font-size: 2vw;
+        padding: 1vw 3vw;
+    }
+}
+@media (max-width: 600px) {
+    form.formulario .form-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    form.formulario input[type="number"] {
+        width: 100%;
+        font-size: 3vw;
+    }
+    form.formulario label {
+        font-size: 3vw;
+    }
+    .download-btn {
+        font-size: 3vw;
+        padding: 2vw 5vw;
+    }
+}

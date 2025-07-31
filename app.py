@@ -1,258 +1,401 @@
-from flask import Flask, render_template_string, request
+from flask import Flask, render_template, request, jsonify, send_file
 import numpy as np
+from typing import Tuple, Dict, Union, Optional
+import logging
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle, Circle
+import io
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-def calcular_corrientes(R1, R2, R3, R4, R5, R6, V1, V2, V3):
-    A = np.array([
-        [R1 + R3 + R4, -R1, -R3],
-        [-R1, R1 + R2 + R5, -R2],
-        [-R3, -R2, R2 + R3 + R6]
-    ])
-    B = np.array([V1, V2, V3])
-    I = np.linalg.solve(A, B)
-    return I[0], I[1], I[2], A, B
+class MeshAnalyzer:
+    """Clase para el análisis de circuitos de mallas residenciales."""
+    
+    # Rangos válidos para validación
+    RESISTANCE_RANGE = (0.01, 1000.0)  # Ohms
+    VOLTAGE_RANGE = (1.0, 500.0)       # Volts
+    
+    @staticmethod
+    def validate_parameters(params: Dict[str, float]) -> None:
+        """
+        Valida que todos los parámetros estén en rangos aceptables.
+        
+        Args:
+            params: Diccionario con los valores de resistencias y voltajes
+            
+        Raises:
+            ValueError: Si algún parámetro está fuera de rango
+        """
+        for key, value in params.items():
+            if not isinstance(value, (int, float)) or np.isnan(value) or np.isinf(value):
+                raise ValueError(f"{key}: Debe ser un número válido")
+            
+            if value <= 0:
+                raise ValueError(f"{key}: Debe ser un valor positivo")
+            
+            if key.startswith('R'):
+                min_val, max_val = MeshAnalyzer.RESISTANCE_RANGE
+                if not (min_val <= value <= max_val):
+                    raise ValueError(f"{key}: Resistencia debe estar entre {min_val}Ω y {max_val}Ω")
+            
+            elif key.startswith('V'):
+                min_val, max_val = MeshAnalyzer.VOLTAGE_RANGE
+                if not (min_val <= value <= max_val):
+                    raise ValueError(f"{key}: Voltaje debe estar entre {min_val}V y {max_val}V")
+    
+    @staticmethod
+    def calcular_corrientes(R1: float, R2: float, R3: float, R4: float, R5: float, R6: float,
+                          V1: float, V2: float, V3: float) -> Tuple[float, float, float, np.ndarray, np.ndarray]:
+        """
+        Calcula las corrientes de malla usando el método matricial de Kirchhoff.
+        
+        Método de análisis nodal para circuito triangular residencial:
+        - Malla 1: Sala/Comedor (I1)
+        - Malla 2: Cocina/Lavandería (I2)  
+        - Malla 3: Dormitorios (I3)
+        
+        Sistema de ecuaciones:
+        (R1+R4+R6)×I1 - R4×I2 - R6×I3 = V1
+        -R4×I1 + (R2+R4+R5)×I2 - R5×I3 = V2  
+        -R6×I1 - R5×I2 + (R3+R5+R6)×I3 = V3
+        
+        Args:
+            R1-R6: Resistencias del circuito (Ohms)
+            V1-V3: Voltajes de alimentación (Volts)
+            
+        Returns:
+            Tuple con: (I1, I2, I3, matriz_A, vector_B)
+            
+        Raises:
+            ValueError: Si el sistema no tiene solución única o parámetros inválidos
+        """
+        # Validar parámetros de entrada
+        params = {'R1': R1, 'R2': R2, 'R3': R3, 'R4': R4, 'R5': R5, 'R6': R6,
+                 'V1': V1, 'V2': V2, 'V3': V3}
+        MeshAnalyzer.validate_parameters(params)
+        
+        # Construir matriz de coeficientes (método de mallas)
+        A = np.array([
+            [R1 + R4 + R6, -R4, -R6],           # Ecuación malla 1
+            [-R4, R2 + R4 + R5, -R5],           # Ecuación malla 2
+            [-R6, -R5, R3 + R5 + R6]            # Ecuación malla 3
+        ], dtype=np.float64)
+        
+        # Vector de voltajes independientes
+        B = np.array([V1, V2, V3], dtype=np.float64)
+        
+        # Verificar que la matriz no sea singular
+        det_A = np.linalg.det(A)
+        if abs(det_A) < 1e-10:
+            raise ValueError("Sistema singular: Las resistencias crean un circuito indeterminado")
+        
+        # Resolver sistema de ecuaciones lineales
+        try:
+            I = np.linalg.solve(A, B)
+            
+            # Verificar que las corrientes sean físicamente razonables
+            max_current = max(abs(i) for i in I)
+            if max_current > 1000:  # Más de 1000A es irrealista para uso residencial
+                logger.warning(f"Corriente muy alta detectada: {max_current:.2f}A")
+            
+            return float(I[0]), float(I[1]), float(I[2]), A, B
+            
+        except np.linalg.LinAlgError as e:
+            raise ValueError(f"Error al resolver el sistema: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Error inesperado en el cálculo: {str(e)}")
+    
+    @staticmethod
+    def interpretar_corrientes(I1: float, I2: float, I3: float) -> Dict[str, str]:
+        """
+        Interpreta el sentido y magnitud de las corrientes calculadas.
+        
+        Args:
+            I1, I2, I3: Corrientes de malla calculadas
+            
+        Returns:
+            Diccionario con interpretaciones textuales
+        """
+        interpretaciones = {}
+        
+        corrientes = {'I1': I1, 'I2': I2, 'I3': I3}
+        zonas = {'I1': 'Sala/Comedor', 'I2': 'Cocina/Lavandería', 'I3': 'Dormitorios'}
+        
+        for nombre, corriente in corrientes.items():
+            magnitud = abs(corriente)
+            sentido = "horario" if corriente > 0 else "antihorario"
+            zona = zonas[nombre]
+            
+            if magnitud < 0.001:
+                interpretaciones[nombre] = f"{zona}: Corriente despreciable (~0A)"
+            elif magnitud < 1:
+                interpretaciones[nombre] = f"{zona}: {magnitud:.3f}A ({sentido}) - Carga baja"
+            elif magnitud < 10:
+                interpretaciones[nombre] = f"{zona}: {magnitud:.2f}A ({sentido}) - Carga normal"
+            elif magnitud < 50:
+                interpretaciones[nombre] = f"{zona}: {magnitud:.1f}A ({sentido}) - Carga alta"
+            else:
+                interpretaciones[nombre] = f"{zona}: {magnitud:.1f}A ({sentido}) - ⚠️ CARGA CRÍTICA"
+        
+        return interpretaciones
+
+def get_default_values() -> Dict[str, float]:
+    """
+    Retorna valores por defecto realistas para una instalación residencial.
+    
+    Returns:
+        Diccionario con valores típicos de resistencias y voltajes
+    """
+    return {
+        'R1': 0.5,   # Resistencia del ramal de sala (Ω) - Cable 12 AWG
+        'R2': 0.7,   # Resistencia del ramal de cocina (Ω) - Cable 12 AWG  
+        'R3': 0.6,   # Resistencia del ramal de dormitorios (Ω) - Cable 12 AWG
+        'R4': 20,    # Resistencia entre sala y cocina (Ω) - Cargas compartidas
+        'R5': 15,    # Resistencia entre cocina y dormitorios (Ω) - Cargas compartidas
+        'R6': 25,    # Resistencia entre dormitorios y sala (Ω) - Cargas compartidas
+        'V1': 120,   # Voltaje de alimentación sala (V) - Monofásico estándar
+        'V2': 220,   # Voltaje de alimentación cocina (V) - Bifásico para electrodomésticos
+        'V3': 120    # Voltaje de alimentación dormitorios (V) - Monofásico estándar
+    }
+
+def get_example_values() -> Dict[str, float]:
+    """
+    Retorna los valores de ejemplo del problema mostrado en la imagen.
+    """
+    return {
+        'R1': 2.0,   # Cocina
+        'R2': 4.0,   # entre Cocina y Sala
+        'R3': 3.0,   # Sala
+        'R4': 6.0,   # entre Sala y Dormitorios
+        'R5': 5.0,   # Dormitorios
+        'R6': 2.0,   # a tierra desde Dormitorio
+        'V1': 12.0,  # Fuente de voltaje
+        'V2': 0.0,   # No hay V2 en el ejemplo
+        'V3': 0.0    # No hay V3 en el ejemplo
+    }
+
+def parse_form_data(form_data: Dict, default_vals: Dict[str, float]) -> Tuple[Dict[str, float], Optional[str]]:
+    """
+    Procesa y valida los datos del formulario.
+    
+    Args:
+        form_data: Datos del formulario Flask
+        default_vals: Valores por defecto a usar
+        
+    Returns:
+        Tuple con (valores_procesados, mensaje_error)
+    """
+    vals = default_vals.copy()
+    
+    try:
+        # Procesar cada campo del formulario
+        for key in vals.keys():
+            form_value = form_data.get(key, '').strip()
+            if form_value:
+                # Reemplazar coma por punto para formato decimal
+                form_value = form_value.replace(',', '.')
+                vals[key] = float(form_value)
+        
+        # Validar usando la clase MeshAnalyzer
+        MeshAnalyzer.validate_parameters(vals)
+        return vals, None
+        
+    except ValueError as e:
+        return vals, str(e)
+    except Exception as e:
+        logger.error(f"Error inesperado al procesar formulario: {e}")
+        return vals, "Error al procesar los datos. Verifica el formato de los números."
+
+def dibujar_circuito(vals):
+    fig, ax = plt.subplots(figsize=(8, 4))
+    fig.patch.set_facecolor('#222')
+    ax.set_facecolor('#222')
+    ax.axis('off')
+    # Líneas horizontales superiores e inferiores
+    ax.plot([0.5, 6.5], [3, 3], color='white', lw=3)  # superior
+    ax.plot([0.5, 6.5], [1, 1], color='white', lw=3)  # inferior
+    # Líneas verticales
+    ax.plot([0.5, 0.5], [1, 3], color='white', lw=3)
+    ax.plot([2.5, 2.5], [1, 3], color='white', lw=3)
+    ax.plot([4.5, 4.5], [1, 3], color='white', lw=3)
+    ax.plot([6.5, 6.5], [1, 3], color='white', lw=3)
+    # Resistencias (como texto)
+    ax.text(1.5, 3.15, f"R₁={vals['R1']}Ω", color='orange', fontsize=13, ha='center', va='bottom', fontweight='bold')
+    ax.text(3.5, 3.15, f"R₃={vals['R3']}Ω", color='orange', fontsize=13, ha='center', va='bottom', fontweight='bold')
+    ax.text(5.5, 3.15, f"R₅={vals['R5']}Ω", color='orange', fontsize=13, ha='center', va='bottom', fontweight='bold')
+    ax.text(0.7, 2, f"R₂={vals['R2']}Ω", color='orange', fontsize=13, ha='left', va='center', fontweight='bold', rotation=90)
+    ax.text(2.7, 2, f"R₄={vals['R4']}Ω", color='orange', fontsize=13, ha='left', va='center', fontweight='bold', rotation=90)
+    ax.text(4.7, 2, f"R₆={vals['R6']}Ω", color='orange', fontsize=13, ha='left', va='center', fontweight='bold', rotation=90)
+    # Fuente de voltaje (círculo y texto)
+    fuente_x, fuente_y = 0.5, 2.6
+    circle = Circle((fuente_x, fuente_y), 0.18, fill=False, edgecolor='cyan', lw=2)
+    ax.add_patch(circle)
+    ax.text(fuente_x-0.15, fuente_y+0.15, '+', color='cyan', fontsize=14, ha='center', va='center')
+    ax.text(fuente_x-0.15, fuente_y-0.15, '-', color='cyan', fontsize=14, ha='center', va='center')
+    ax.text(fuente_x-0.4, fuente_y, f"V₁={vals['V1']}V", color='cyan', fontsize=13, ha='right', va='center', fontweight='bold')
+    # Flechas de corriente
+    def flecha_corriente(x1, y1, x2, y2, label):
+        ax.annotate('', xy=(x2, y2), xytext=(x1, y1), arrowprops=dict(facecolor='lime', edgecolor='lime', arrowstyle='->', lw=2))
+        ax.text((x1+x2)/2, y1-0.18, label, color='lime', fontsize=15, ha='center', va='top', fontweight='bold')
+    flecha_corriente(1, 0.9, 2, 0.9, 'I₁')
+    flecha_corriente(3, 0.9, 4, 0.9, 'I₂')
+    flecha_corriente(5, 0.9, 6, 0.9, 'I₃')
+    # Etiquetas de malla
+    ax.text(1.5, 0.6, 'Malla 1\n(Cocina)', color='white', fontsize=13, ha='center', va='center')
+    ax.text(3.5, 0.6, 'Malla 2\n(Sala)', color='white', fontsize=13, ha='center', va='center')
+    ax.text(5.5, 0.6, 'Malla 3\n(Dormitorios)', color='white', fontsize=13, ha='center', va='center')
+    ax.set_xlim(0, 7)
+    ax.set_ylim(0.3, 3.5)
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', facecolor=fig.get_facecolor())
+    plt.close(fig)
+    buf.seek(0)
+    return buf
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    default_vals = {
-        'R1': 0.5, 'R2': 0.7, 'R3': 0.6, 'R4': 20, 'R5': 15, 'R6': 25,
-        'V1': 120, 'V2': 220, 'V3': 120
-    }
+    """
+    Ruta principal de la aplicación.
+    
+    GET: Muestra el formulario con valores por defecto
+    POST: Procesa el cálculo y muestra resultados
+    """
+    default_vals = get_default_values()
     vals = default_vals.copy()
     error = None
+    I1 = I2 = I3 = A = B = interpretaciones = None
+    
     if request.method == 'POST':
-        try:
-            for key in vals:
-                vals[key] = float(request.form.get(key, vals[key]))
-        except Exception:
-            error = 'Por favor, ingresa valores numéricos válidos.'
+        # Procesar datos del formulario
+        vals, error = parse_form_data(request.form, default_vals)
+        
+        # Si no hay errores en el formulario, calcular corrientes
+        if not error:
+            try:
+                # Extraer parámetros
+                R1, R2, R3, R4, R5, R6 = vals['R1'], vals['R2'], vals['R3'], vals['R4'], vals['R5'], vals['R6']
+                V1, V2, V3 = vals['V1'], vals['V2'], vals['V3']
 
-    R1, R2, R3, R4, R5, R6 = vals['R1'], vals['R2'], vals['R3'], vals['R4'], vals['R5'], vals['R6']
-    V1, V2, V3 = vals['V1'], vals['V2'], vals['V3']
+                # Calcular corrientes de malla
+                I1, I2, I3, A, B = MeshAnalyzer.calcular_corrientes(R1, R2, R3, R4, R5, R6, V1, V2, V3)
+                
+                # Interpretar resultados
+                interpretaciones = MeshAnalyzer.interpretar_corrientes(I1, I2, I3)
+                
+                logger.info(f"Cálculo exitoso: I1={I1:.3f}A, I2={I2:.3f}A, I3={I3:.3f}A")
+                
+            except ValueError as e:
+                error = str(e)
+                logger.warning(f"Error de validación: {error}")
+            except Exception as e:
+                error = "Error inesperado durante el cálculo. Verifica los valores ingresados."
+                logger.error(f"Error inesperado: {e}")
+
+    # Preparar datos para el template
+    template_data = {
+        'vals': vals,
+        'error': error,
+        'I1': I1, 'I2': I2, 'I3': I3,
+        'A': A, 'B': B,
+        'interpretaciones': interpretaciones,
+        'default_vals': default_vals
+    }
+    
+    return render_template('index.html', **template_data)
+
+@app.route('/api/calculate', methods=['POST'])
+def api_calculate():
+    """
+    API endpoint para cálculos programáticos.
+    
+    Acepta JSON con parámetros R1-R6, V1-V3
+    Retorna JSON con resultados o errores
+    """
     try:
-        I1, I2, I3, A, B = calcular_corrientes(R1, R2, R3, R4, R5, R6, V1, V2, V3)
-    except Exception:
-        I1 = I2 = I3 = None
-        error = 'El sistema no tiene solución única (verifica los valores ingresados).'
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No se recibieron datos JSON'}), 400
+        
+        # Validar que estén todos los parámetros requeridos
+        required_params = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'V1', 'V2', 'V3']
+        missing_params = [p for p in required_params if p not in data]
+        if missing_params:
+            return jsonify({'error': f'Parámetros faltantes: {missing_params}'}), 400
+        
+        # Extraer y calcular
+        R1, R2, R3, R4, R5, R6 = data['R1'], data['R2'], data['R3'], data['R4'], data['R5'], data['R6']
+        V1, V2, V3 = data['V1'], data['V2'], data['V3']
+        
+        I1, I2, I3, A, B = MeshAnalyzer.calcular_corrientes(R1, R2, R3, R4, R5, R6, V1, V2, V3)
+        interpretaciones = MeshAnalyzer.interpretar_corrientes(I1, I2, I3)
+        
+        return jsonify({
+            'success': True,
+            'currents': {'I1': I1, 'I2': I2, 'I3': I3},
+            'matrix_A': A.tolist(),
+            'vector_B': B.tolist(),
+            'interpretations': interpretaciones
+        })
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error en API: {e}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
 
-    latex_mallas = r'''
-    \begin{cases}
-    (R_1+R_3+R_4)I_1 - R_1 I_2 - R_3 I_3 = V_1 \\
-    -R_1 I_1 + (R_1+R_2+R_5)I_2 - R_2 I_3 = V_2 \\
-    -R_3 I_1 - R_2 I_2 + (R_2+R_3+R_6)I_3 = V_3
-    \end{cases}
-    '''
-    latex_matriz = r'''
-    A = \begin{bmatrix} R_1+R_3+R_4 & -R_1 & -R_3 \\ -R_1 & R_1+R_2+R_5 & -R_2 \\ -R_3 & -R_2 & R_2+R_3+R_6 \end{bmatrix}, \\
-    B = \begin{bmatrix} V_1 \\ V_2 \\ V_3 \end{bmatrix}
-    '''
-    latex_sistema = r'''
-    \begin{bmatrix} %.2f & %.2f & %.2f \\ %.2f & %.2f & %.2f \\ %.2f & %.2f & %.2f \end{bmatrix} \begin{bmatrix} I_1 \\ I_2 \\ I_3 \end{bmatrix} = \begin{bmatrix} %.2f \\ %.2f \\ %.2f \end{bmatrix}
-    ''' % (A[0,0], A[0,1], A[0,2], A[1,0], A[1,1], A[1,2], A[2,0], A[2,1], A[2,2], B[0], B[1], B[2]) if I1 is not None else ''
+@app.route('/api/example', methods=['GET'])
+def api_example():
+    """
+    Devuelve los valores de ejemplo del problema como JSON.
+    """
+    return jsonify(get_example_values())
 
-    html = f'''
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Optimización de sistemas de distribución de energía en instalaciones residenciales</title>
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-        <style>
-            body {{ font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%); margin: 0; padding: 0; }}
-            header {{ background: #1e293b; color: #fff; padding: 30px 0 15px 0; text-align: center; box-shadow: 0 2px 8px rgba(30,41,59,0.08); }}
-            header h1 {{ margin: 0; font-size: 2.5em; letter-spacing: 1px; }}
-            header p {{ margin: 10px 0 0 0; font-size: 1.2em; color: #cbd5e1; }}
-            main {{ background: #fff; max-width: 950px; margin: 40px auto 30px auto; border-radius: 12px; box-shadow: 0 4px 24px rgba(30,41,59,0.10); padding: 32px 36px 28px 36px; }}
-            section {{ margin-bottom: 28px; }}
-            .section-title {{ color: #1e293b; font-size: 1.3em; margin-top: 0; margin-bottom: 10px; border-left: 4px solid #6366f1; padding-left: 10px; }}
-            .explanation {{ background: #f1f5f9; border-left: 4px solid #6366f1; padding: 16px 18px; border-radius: 6px; margin-bottom: 18px; color: #334155; }}
-            .desc-section {{ background: #f1f5f9; border-left: 4px solid #f59e42; padding: 16px 18px; border-radius: 6px; margin-bottom: 18px; color: #b45309; }}
-            .results {{ background: #f8fafc; border-radius: 8px; padding: 18px 20px; margin: 18px 0; font-size: 1.15em; color: #1e293b; border: 1px solid #e0e7ef; }}
-            .circuit-diagram {{ display: flex; justify-content: center; margin: 24px 0 10px 0; }}
-            .footer {{ text-align: center; color: #64748b; font-size: 1em; margin-bottom: 18px; }}
-            @media (max-width: 950px) {{ main {{ padding: 18px 6vw; }} }}
-            .math-block {{ background: #f3f4f6; border-radius: 6px; padding: 10px 18px; margin: 10px 0 18px 0; font-size: 1.1em; overflow-x: auto; }}
-            .form-section {{ background: #f8fafc; border: 1px solid #e0e7ef; border-radius: 8px; padding: 18px 20px; margin-bottom: 24px; }}
-            .form-row {{ display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 12px; }}
-            .form-row label {{ min-width: 60px; font-weight: 500; color: #334155; }}
-            .form-row input {{ width: 80px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 1em; }}
-            .form-actions {{ margin-top: 10px; }}
-            .form-actions button {{ background: #6366f1; color: #fff; border: none; border-radius: 4px; padding: 8px 18px; font-size: 1em; cursor: pointer; }}
-            .form-actions button:hover {{ background: #4f46e5; }}
-            .error-msg {{ color: #dc2626; font-weight: 500; margin-bottom: 10px; }}
-            .calc-explanation {{ color: #334155; font-size: 1.05em; margin-bottom: 10px; }}
-            .arrow-anim {{ animation: moveArrow 1.2s linear infinite alternate; }}
-            @keyframes moveArrow {{ 0% {{ transform: translateY(0); }} 100% {{ transform: translateY(-18px); }} }}
-        </style>
-    </head>
-    <body>
-        <header>
-            <h1>Optimización de sistemas de distribución de energía en instalaciones residenciales</h1>
-            <p>Ejemplo de análisis de mallas en una vivienda con tres zonas principales</p>
-        </header>
-        <main>
-            <section>
-                <h2 class="section-title">Introducción</h2>
-                <div class="explanation">
-                    El <b>análisis de circuitos eléctricos en mallas</b> es fundamental para el diseño eficiente de sistemas de distribución de energía en viviendas. Utilizando el método de mallas, es posible calcular las corrientes que circulan por cada lazo del circuito, optimizando así el consumo y la seguridad eléctrica en instalaciones residenciales.<br><br>
-                    <b>Este ejemplo representa una vivienda con tres zonas principales:</b> <br>
-                    <ul>
-                        <li><b>Malla 1:</b> Sala y comedor</li>
-                        <li><b>Malla 2:</b> Cocina y lavandería</li>
-                        <li><b>Malla 3:</b> Dormitorios</li>
-                    </ul>
-                    Cada zona tiene su propio ramal, pero comparten parte del cableado y están alimentadas por diferentes circuitos derivados desde el tablero principal. Las resistencias representan tanto el cableado como la carga de los electrodomésticos y luminarias.
-                </div>
-            </section>
-            <section>
-                <h2 class="section-title">Circuito de tres mallas residencial</h2>
-                <div class="circuit-diagram">
-                    <svg width="700" height="600" viewBox="0 0 700 600">
-                        <!-- Vértices del triángulo -->
-                        <circle cx="150" cy="150" r="12" fill="#64748b" /> <!-- Nodo A -->
-                        <circle cx="550" cy="150" r="12" fill="#64748b" /> <!-- Nodo B -->
-                        <circle cx="350" cy="500" r="12" fill="#64748b" /> <!-- Nodo C -->
-                        <!-- Etiquetas de nodos -->
-                        <text x="120" y="140" font-size="26" fill="#64748b" font-weight="bold">A</text>
-                        <text x="570" y="140" font-size="26" fill="#64748b" font-weight="bold">B</text>
-                        <text x="370" y="540" font-size="26" fill="#64748b" font-weight="bold">C</text>
-                        <!-- Lados del triángulo (resistencias compartidas) -->
-                        <!-- R1: A-B -->
-                        <rect x="210" y="140" width="280" height="14" fill="#64748b" transform="rotate(0 350 150)" />
-                        <text x="320" y="135" font-size="18" fill="#64748b">R1={vals['R1']}Ω</text>
-                        <!-- R2: B-C -->
-                        <rect x="430" y="220" width="180" height="14" fill="#64748b" transform="rotate(120 550 150)" />
-                        <text x="520" y="320" font-size="18" fill="#64748b">R2={vals['R2']}Ω</text>
-                        <!-- R3: C-A -->
-                        <rect x="110" y="220" width="180" height="14" fill="#64748b" transform="rotate(240 150 150)" />
-                        <text x="160" y="320" font-size="18" fill="#64748b">R3={vals['R3']}Ω</text>
-                        <!-- R4 y V1: desde A hacia afuera -->
-                        <rect x="140" y="70" width="20" height="60" fill="#6366f1" />
-                        <text x="110" y="60" font-size="20" fill="#6366f1">R4={vals['R4']}Ω</text>
-                        <circle cx="150" cy="40" r="18" fill="#facc15" stroke="#eab308" stroke-width="2" />
-                        <text x="100" y="35" font-size="20" fill="#b45309">V1={vals['V1']}V</text>
-                        <line x1="150" y1="150" x2="150" y2="70" stroke="#334155" stroke-width="5" />
-                        <line x1="150" y1="70" x2="150" y2="40" stroke="#334155" stroke-width="5" stroke-dasharray="8,6" />
-                        <!-- R5 y V2: desde B hacia afuera -->
-                        <rect x="540" y="70" width="20" height="60" fill="#0ea5e9" />
-                        <text x="560" y="60" font-size="20" fill="#0ea5e9">R5={vals['R5']}Ω</text>
-                        <circle cx="550" cy="40" r="18" fill="#facc15" stroke="#eab308" stroke-width="2" />
-                        <text x="570" y="35" font-size="20" fill="#b45309">V2={vals['V2']}V</text>
-                        <line x1="550" y1="150" x2="550" y2="70" stroke="#334155" stroke-width="5" />
-                        <line x1="550" y1="70" x2="550" y2="40" stroke="#334155" stroke-width="5" stroke-dasharray="8,6" />
-                        <!-- R6 y V3: desde C hacia afuera -->
-                        <rect x="340" y="520" width="20" height="60" fill="#f59e42" />
-                        <text x="370" y="610" font-size="20" fill="#f59e42">R6={vals['R6']}Ω</text>
-                        <circle cx="350" cy="600" r="18" fill="#facc15" stroke="#eab308" stroke-width="2" />
-                        <text x="370" y="630" font-size="20" fill="#b45309">V3={vals['V3']}V</text>
-                        <line x1="350" y1="500" x2="350" y2="520" stroke="#334155" stroke-width="5" />
-                        <line x1="350" y1="520" x2="350" y2="600" stroke="#334155" stroke-width="5" stroke-dasharray="8,6" />
-                        <!-- Lados del triángulo (conexiones) -->
-                        <line x1="150" y1="150" x2="550" y2="150" stroke="#334155" stroke-width="5" /> <!-- A-B -->
-                        <line x1="550" y1="150" x2="350" y2="500" stroke="#334155" stroke-width="5" /> <!-- B-C -->
-                        <line x1="350" y1="500" x2="150" y2="150" stroke="#334155" stroke-width="5" /> <!-- C-A -->
-                    </svg>
-                </div>
-            </section>
-            <section class="desc-section">
-                <b>Descripción:</b> El circuito mostrado representa tres mallas conectadas mediante resistencias (<b>R1</b> a <b>R6</b>) y alimentadas por tres fuentes de voltaje (<b>V1</b>, <b>V2</b> y <b>V3</b>). El objetivo es calcular las corrientes <b>I₁</b>, <b>I₂</b> e <b>I₃</b> que circulan por cada malla, lo cual es esencial para dimensionar correctamente los conductores y dispositivos de protección en una instalación residencial.
-            </section>
-            <section class="form-section">
-                <h2 class="section-title">Calculadora de mallas residenciales</h2>
-                <div class="calc-explanation">
-                    Ingresa los valores de las resistencias y voltajes de cada zona de la vivienda. Al pulsar "Calcular", obtendrás las corrientes de malla para cada lazo del circuito. Esto te permite analizar y optimizar la distribución de energía en instalaciones residenciales reales.
-                </div>
-                <form method="post">
-                    <div class="form-row">
-                        <label for="R1">R1 (Ω):</label><input type="number" step="any" name="R1" value="{vals['R1']}">
-                        <label for="R2">R2 (Ω):</label><input type="number" step="any" name="R2" value="{vals['R2']}">
-                        <label for="R3">R3 (Ω):</label><input type="number" step="any" name="R3" value="{vals['R3']}">
-                    </div>
-                    <div class="form-row">
-                        <label for="R4">R4 (Ω):</label><input type="number" step="any" name="R4" value="{vals['R4']}">
-                        <label for="R5">R5 (Ω):</label><input type="number" step="any" name="R5" value="{vals['R5']}">
-                        <label for="R6">R6 (Ω):</label><input type="number" step="any" name="R6" value="{vals['R6']}">
-                    </div>
-                    <div class="form-row">
-                        <label for="V1">V1 (V):</label><input type="number" step="any" name="V1" value="{vals['V1']}">
-                        <label for="V2">V2 (V):</label><input type="number" step="any" name="V2" value="{vals['V2']}">
-                        <label for="V3">V3 (V):</label><input type="number" step="any" name="V3" value="{vals['V3']}">
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit">Calcular</button>
-                    </div>
-                    {'<div class="error-msg">'+error+'</div>' if error else ''}
-                </form>
-            </section>
-            <section>
-                <h2 class="section-title">Resultados de la simulación</h2>
-                <div class="results">
-                    {f'<b>Corriente en la malla 1 (Sala/Comedor, I₁):</b> {I1:.2f} A<br>' if I1 is not None else ''}
-                    {f'<b>Corriente en la malla 2 (Cocina/Lavandería, I₂):</b> {I2:.2f} A<br>' if I2 is not None else ''}
-                    {f'<b>Corriente en la malla 3 (Dormitorios, I₃):</b> {I3:.2f} A' if I3 is not None else ''}
-                </div>
-                <div class="explanation">
-                    <b>Interpretación:</b> Estos valores permiten analizar el comportamiento del circuito y tomar decisiones para optimizar la distribución de energía, reducir pérdidas y mejorar la seguridad eléctrica en el hogar.
-                </div>
-            </section>
-            <section>
-                <h2 class="section-title">¿Cómo se calculan las corrientes de malla?</h2>
-                <div class="explanation">
-                    <ol>
-                        <li><b>Identificación de las mallas:</b><br>
-                            Observa el circuito y define cada lazo independiente (malla). Asigna una corriente a cada malla (por ejemplo, I₁, I₂, I₃), normalmente en sentido horario.
-                        </li>
-                        <li><b>Aplicación de la Ley de Kirchhoff de Voltajes (LKV):</b><br>
-                            Para cada malla, recorre el lazo sumando las caídas y subidas de voltaje (resistencias y fuentes). La suma algebraica de voltajes en cada malla debe ser igual a cero.<br>
-                            <i>Ejemplo:</i> Para la malla 1, suma las caídas de tensión en R1, R3, R4 y las fuentes V1, considerando el sentido de la corriente.
-                        </li>
-                        <li><b>Planteamiento del sistema de ecuaciones:</b><br>
-                            Escribe una ecuación para cada malla. Si dos mallas comparten una resistencia, la caída de tensión en esa resistencia depende de la diferencia de corrientes.<br>
-                            <div class="math-block">$$ {latex_mallas} $$</div>
-                        </li>
-                        <li><b>Expresión matricial:</b><br>
-                            El sistema se puede escribir en forma de matrices, lo que facilita su resolución con métodos algebraicos o computacionales.<br>
-                            <div class="math-block">$$ {latex_matriz} $$</div>
-                        </li>
-                        <li><b>Reemplazo de valores numéricos:</b><br>
-                            Sustituye los valores de resistencias y voltajes en la matriz y el vector de términos independientes.<br>
-                            <div class="math-block">$$ {latex_sistema} $$</div>
-                        </li>
-                        <li><b>Resolución del sistema:</b><br>
-                            Resuelve el sistema de ecuaciones lineales (por ejemplo, usando la regla de Cramer, matrices inversas o herramientas como Python y NumPy) para encontrar las corrientes de cada malla.<br>
-                            <b>Consejo:</b> Si el sistema no tiene solución única, revisa que no haya errores en el planteamiento o valores inconsistentes.
-                        </li>
-                        <li><b>Interpretación de resultados:</b><br>
-                            Analiza el sentido y magnitud de las corrientes. Un valor negativo indica que la corriente real va en sentido opuesto al supuesto.
-                        </li>
-                    </ol>
-                    <b>Resumen:</b> El método de mallas es una técnica sistemática y poderosa para analizar circuitos complejos, permitiendo optimizar el diseño y la seguridad de instalaciones eléctricas residenciales.
-                </div>
-            </section>
-            <section>
-                <h2 class="section-title">Importancia del análisis de mallas</h2>
-                <div class="explanation">
-                    El método de mallas facilita el diseño eficiente de sistemas eléctricos residenciales, permitiendo:
-                    <ul>
-                        <li>Optimizar el uso de materiales y energía.</li>
-                        <li>Prevenir sobrecargas y fallos eléctricos.</li>
-                        <li>Garantizar la seguridad de los habitantes.</li>
-                        <li>Reducir costos de instalación y operación.</li>
-                    </ul>
-                </div>
-            </section>
-        </main>
-        <footer class="footer">
-            &copy; 2024 - Simulación de Circuitos en Mallas | Proyecto académico<br>
-            Tema: Optimización de sistemas de distribución de energía en instalaciones residenciales
-        </footer>
-    </body>
-    </html>
-    '''
-    return render_template_string(html, vals=vals)
+@app.route('/circuito.png')
+def circuito_png():
+    # Obtener valores de la query string o usar por defecto
+    vals = get_default_values()
+    for key in vals.keys():
+        val = request.args.get(key)
+        if val is not None:
+            try:
+                vals[key] = float(val.replace(',', '.'))
+            except Exception:
+                pass  # Si hay error, deja el valor por defecto
+    buf = dibujar_circuito(vals)
+    return send_file(buf, mimetype='image/png')
+
+@app.errorhandler(404)
+def not_found(error):
+    """Manejo de páginas no encontradas."""
+    template_data = {
+        'vals': get_default_values(),
+        'error': "Página no encontrada (Error 404)",
+        'I1': None, 'I2': None, 'I3': None,
+        'A': None, 'B': None,
+        'interpretaciones': None,
+        'default_vals': get_default_values()
+    }
+    return render_template('index.html', **template_data), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Manejo de errores internos del servidor."""
+    logger.error(f"Error interno: {error}")
+    template_data = {
+        'vals': get_default_values(),
+        'error': "Error interno del servidor (Error 500). Revisa la consola para más detalles.",
+        'I1': None, 'I2': None, 'I3': None,
+        'A': None, 'B': None,
+        'interpretaciones': None,
+        'default_vals': get_default_values()
+    }
+    return render_template('index.html', **template_data), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    logger.info("Iniciando servidor de simulación de mallas residenciales...")
+    app.run(debug=True, host='0.0.0.0', port=5000)
