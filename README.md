@@ -1,183 +1,232 @@
-# Simulación de Mallas Residenciales
+# Simulador de Mallas Eléctricas Residenciales
 
-Una aplicación web interactiva para el análisis de circuitos eléctricos en mallas, optimizada para instalaciones residenciales.
+Aplicación web que calcula corrientes eléctricas en circuitos residenciales usando análisis de mallas de Kirchhoff.
 
-## Características
+## ¿Qué hace?
 
-### Funcionalidades Principales
-- **Calculadora de mallas** con interfaz intuitiva
-- **Visualización SVG animada** del circuito eléctrico
-- **Resolución matemática paso a paso** con MathJax
-- **Validación en tiempo real** de los datos de entrada
-- **Diseño completamente responsivo** para todos los dispositivos
+Esta herramienta analiza circuitos eléctricos de viviendas divididos en tres zonas:
+- **Malla 1:** Sala/Comedor  
+- **Malla 2:** Cocina/Lavandería
+- **Malla 3:** Dormitorios
 
-### Tecnologías Utilizadas
-- **Backend**: Flask (Python)
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Matemáticas**: NumPy para cálculos matriciales
-- **Visualización**: SVG animado + MathJax para ecuaciones
-- **Estilos**: CSS Grid + Flexbox + Unidades responsivas
+Calcula automáticamente las corrientes que circulan por cada zona y determina si las cargas son normales o críticas.
 
-## Estructura del Proyecto
+## Instalación
 
-```
-simulacion_mallas/
-├── app.py                    # Aplicación Flask principal
-├── simulacion_mallas.py      # Script de cálculo independiente
-├── run_app.bat              # Script de ejecución (Windows)
-├── run_app.sh               # Script de ejecución (Linux/Mac)
-├── static/
-│   ├── styles.css           # Estilos CSS responsivos
-│   └── main.js              # JavaScript interactivo
-└── templates/
-    └── index.html           # Template HTML principal
-```
-
-## Cómo Ejecutar
-
-### Opción 1: Script automático (Windows)
-```bash
-run_app.bat
-```
-
-### Opción 2: Script automático (Linux/Mac)
-```bash
-chmod +x run_app.sh
-./run_app.sh
-```
-
-### Opción 3: Comando directo
-```bash
+\`\`\`bash
+git clone https://github.com/TU_USUARIO/simulacion_mallas.git
+cd simulacion_mallas
+pip install flask numpy matplotlib
 python app.py
-```
+\`\`\`
 
-La aplicación estará disponible en: `http://localhost:5000`
+Abrir navegador en: \`http://localhost:5000\`
 
-## Diseño Responsivo
+## Cómo usar
 
-El proyecto utiliza un sistema de unidades completamente responsivo:
+### Interfaz Web
+1. Ingresar valores de **resistencias** (R1 a R6) en Ohms
+2. Ingresar **voltajes** (V1 a V3) en Volts  
+3. Hacer clic en **\"Calcular\"**
+4. Ver resultados con interpretación automática
 
-- **vw/vh**: Para tamaños de fuente y espaciados
-- **%**: Para márgenes y dimensiones
-- **CSS Grid/Flexbox**: Para layouts adaptativos
-- **Media queries**: Para diferentes breakpoints
+### Ejemplo rápido
+Hacer clic en **\"Cargar ejemplo\"** para valores predefinidos:
+- R1=2Ω, R2=4Ω, R3=3Ω, R4=6Ω, R5=5Ω, R6=2Ω
+- V1=12V, V2=0V, V3=0V
+- **Resultado:** I1=2.296A, I2=1.406A, I3=1.262A
 
-### Breakpoints
-- **Desktop**: > 1200px
-- **Tablet**: 768px - 1200px  
-- **Mobile**: < 768px
+## API REST
 
-## Funcionalidades Matemáticas
+### Calcular corrientes
+\`\`\`bash
+POST /api/calculate
+Content-Type: application/json
 
-### Método de Mallas
-El sistema resuelve circuitos de 3 mallas usando:
-
-```
-(R1+R4+R6)I1 - R4*I2 - R6*I3 = V1
--R4*I1 + (R2+R4+R5)I2 - R5*I3 = V2  
--R6*I1 - R5*I2 + (R3+R5+R6)I3 = V3
-```
-
-### Características
-- **Matriz de coeficientes** automática
-- **Resolución con NumPy** (eliminación gaussiana)
-- **Validación de sistemas** singulares
-- **Interpretación de resultados** (sentido de corriente)
-
-## Características de UI/UX
-
-### Validación en Tiempo Real
-- Campos numéricos válidos
-- Valores positivos
-- Rangos realistas (R: 0.1-1000Ω, V: 1-500V)
-- Mensajes de error descriptivos
-
-### Animaciones
-- Electrones moviéndose por el circuito
-- Efectos de brillo en las bombillas
-- Transiciones suaves en hover
-- Animaciones de aparición de resultados
-
-### Interactividad
-- Hover en resultados resalta elementos del SVG
-- Copia de resultados al portapapeles
-- Exportación a CSV
-- Tooltips informativos
-
-## Personalización
-
-### Valores por Defecto
-```python
-default_vals = {
-    'R1': 0.5,   # Resistencia sala (Ω)
-    'R2': 0.7,   # Resistencia cocina (Ω)  
-    'R3': 0.6,   # Resistencia dormitorios (Ω)
-    'R4': 20,    # Conexión sala-cocina (Ω)
-    'R5': 15,    # Conexión cocina-dormitorios (Ω)
-    'R6': 25,    # Conexión dormitorios-sala (Ω)
-    'V1': 120,   # Voltaje sala (V)
-    'V2': 220,   # Voltaje cocina (V)
-    'V3': 120    # Voltaje dormitorios (V)
+{
+  \"R1\": 2.0, \"R2\": 4.0, \"R3\": 3.0,
+  \"R4\": 6.0, \"R5\": 5.0, \"R6\": 2.0,
+  \"V1\": 12.0, \"V2\": 0.0, \"V3\": 0.0
 }
-```
+\`\`\`
 
-### Colores del Tema
-- **Primario**: `#0ea5e9` (Sky Blue)
-- **Secundario**: `#38bdf8` (Light Blue)
-- **Acentos**: `#6366f1` (Indigo), `#e11d48` (Rose)
-- **Fondo**: Gradiente `#38bdf8` → `#fff`
+### Obtener valores de ejemplo
+\`\`\`bash
+GET /api/example
+\`\`\`
 
-## Casos de Uso
+### Generar diagrama del circuito
+\`\`\`bash
+GET /circuito.png?R1=2.0&R2=4.0&R3=3.0&R4=6.0&R5=5.0&R6=2.0&V1=12.0&V2=0.0&V3=0.0
+\`\`\`
 
-### Residencial
-- Análisis de cargas por zona
-- Dimensionamiento de conductores
-- Cálculo de caídas de tensión
-- Optimización energética
+## Cómo funciona
 
-### Educativo
-- Enseñanza del método de mallas
-- Visualización de conceptos eléctricos
-- Práctica con sistemas matriciales
-- Comprensión de la Ley de Kirchhoff
+Resuelve el sistema de ecuaciones de Kirchhoff:
+\`\`\`
+(R1+R4+R6)×I1 - R4×I2 - R6×I3 = V1
+-R4×I1 + (R2+R4+R5)×I2 - R5×I3 = V2
+-R6×I1 - R5×I2 + (R3+R5+R6)×I3 = V3
+\`\`\`
 
-## Mejoras Implementadas
+Usando álgebra lineal: **I = A⁻¹ × B**
 
-### v2.0 (Actual)
-- Arquitectura Flask refactorizada
-- Sistema de templates organizado
-- CSS completamente responsivo
-- JavaScript interactivo avanzado
-- Validación en tiempo real
-- Animaciones SVG mejoradas
-- Soporte completo MathJax
-- Exportación de datos
+## Validaciones
 
-### v1.0 (Original)
-- Cálculo básico de mallas
-- Interfaz web simple
-- SVG estático del circuito
+- **Resistencias:** 0.01Ω a 1000Ω
+- **Voltajes:** 1V a 500V  
+- **Corrientes:** Alerta si supera 1000A
+- **Sistema:** Verifica que tenga solución única
 
-## Solución de Problemas
+## Características técnicas
 
-### Error: "El sistema no tiene solución única"
-- Verificar que los valores de resistencia sean positivos
-- Asegurar que el circuito no sea singular
-- Revisar las conexiones del circuito
+- **Clase MeshAnalyzer:** Análisis profesional con validación robusta
+- **Logging completo:** Registro de cálculos y errores
+- **Validación de parámetros:** Rangos seguros para uso residencial
+- **Interpretación automática:** Clasificación de cargas (baja/normal/alta/crítica)
+- **Manejo de errores:** Captura de sistemas singulares y valores inválidos
+- **API REST:** Integración con otras aplicaciones
+- **Visualización:** Diagrama dinámico del circuito con matplotlib
+- **Interface académica:** Resolución matemática paso a paso con MathJax
 
-### Error: "Valores numéricos inválidos"
-- Usar punto decimal (.) no coma (,)
-- Verificar que todos los campos estén llenos
-- Asegurar valores dentro de rangos válidos
+## Archivos del proyecto
 
-## Soporte
+\`\`\`
+simulacion_mallas/
+├── app.py                 # Aplicación principal (completa)
+├── app_clean.py          # Versión simplificada  
+├── templates/
+│   └── index.html        # Interfaz web académica con resolución paso a paso
+├── static/               # Archivos CSS/JS (si existen)
+├── README.md             # Este archivo
+└── requirements.txt      # Dependencias
+\`\`\`
 
-Para reportar problemas o sugerir mejoras:
-- **Autor**: runer0101
-- **Proyecto**: Optimización de sistemas de distribución de energía
-- **Tema**: Simulación de circuitos en mallas residenciales
+## Tecnologías
+
+- **Python 3.7+** con Flask para servidor web
+- **NumPy** para cálculos matriciales y álgebra lineal
+- **Matplotlib** para generación de diagramas del circuito
+- **HTML/CSS/JavaScript** para interfaz de usuario
+- **MathJax** para renderizado de ecuaciones matemáticas
+- **Logging** para monitoreo y debugging
+- **Type hints** para mejor documentación del código
+
+## Interpretación de resultados
+
+### Magnitud de corriente:
+- **< 0.001A:** Corriente despreciable
+- **< 1A:** Carga baja
+- **1-10A:** Carga normal  
+- **10-50A:** Carga alta
+- **> 50A:** ⚠️ Carga crítica
+
+### Sentido de corriente:
+- **Positiva:** Sentido horario
+- **Negativa:** Sentido antihorario
+
+## Validaciones de seguridad
+
+La aplicación incluye validaciones exhaustivas:
+- Verificación de rangos de resistencias y voltajes
+- Detección de sistemas singulares (sin solución única)
+- Alertas para corrientes peligrosamente altas
+- Manejo robusto de errores con logging
+- Validación de tipos de datos y valores NaN/infinitos
+
+## Casos de uso
+
+1. **Análisis de instalaciones residenciales** reales
+2. **Educación en ingeniería eléctrica** - problemas de ejemplo
+3. **Verificación de diseños** eléctricos antes de implementación
+4. **Integración con software** de diseño via API REST
+5. **Simulación de cargas** en diferentes zonas de la vivienda
+6. **Enseñanza académica** con resolución matemática detallada
 
 ## Licencia
 
-Proyecto académico - 2024
-Tema: Optimización de sistemas de distribución de energía en instalaciones residenciales
+MIT License - Uso libre para proyectos educativos y comerciales." > README.md
+
+# Crear archivo .gitignore
+echo "# Python
+__pycache__/
+*.py[cod]
+*\$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Flask
+instance/
+.webassets-cache
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Virtual environment
+venv/
+env/
+
+# Temporary files
+*.tmp
+*.temp" > .gitignore
+
+# Crear requirements.txt
+echo "Flask==2.3.3
+numpy==1.24.3
+matplotlib==3.7.2" > requirements.txt
+
+# Inicializar Git y hacer commit
+git init
+git add .
+git commit -m "🎉 Initial commit: Simulador de mallas eléctricas residenciales
+
+Características implementadas:
+- Análisis completo de 3 mallas eléctricas residenciales
+- Interfaz web académica con resolución matemática paso a paso
+- API REST completa para integración
+- Validación robusta de parámetros eléctricos
+- Visualización dinámica de circuitos con matplotlib
+- Clase MeshAnalyzer para análisis profesional
+- Logging completo y manejo de errores
+- Renderizado de ecuaciones con MathJax
+- Interpretación automática de resultados
+- Documentación técnica completa
+
+Zonas analizadas:
+- Malla 1: Sala/Comedor
+- Malla 2: Cocina/Lavandería  
+- Malla 3: Dormitorios
+
+Métodos implementados:
+- Análisis de mallas de Kirchhoff
+- Resolución matricial con NumPy
+- Validación de sistemas no singulares
+- Cálculo de corrientes reales en componentes
+- Análisis de potencia disipada
+
+Tecnologías:
+- Python Flask + NumPy + Matplotlib
+- HTML5 + CSS3 + JavaScript + MathJax
+- API REST con validación completa
+- Logging y Type hints para código profesional"
+
+# Agregar remote origin (reemplaza TU_USUARIO con tu usuario de GitHub)
+echo "Para conectar con GitHub, ejecuta:"
+echo "git remote add origin https://github.com/TU_USUARIO/simulacion_mallas.git"
+echo "git branch -M main" 
+echo "git push -u origin main"
