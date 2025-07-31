@@ -1,183 +1,111 @@
-# Simulación de Mallas Residenciales
+# Simulador de Circuitos Eléctricos en Mallas
 
-Una aplicación web interactiva para el análisis de circuitos eléctricos en mallas, optimizada para instalaciones residenciales.
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![Flask](https://img.shields.io/badge/flask-2.x-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-## Características
+---
 
-### Funcionalidades Principales
-- **Calculadora de mallas** con interfaz intuitiva
-- **Visualización SVG animada** del circuito eléctrico
-- **Resolución matemática paso a paso** con MathJax
-- **Validación en tiempo real** de los datos de entrada
-- **Diseño completamente responsivo** para todos los dispositivos
+<!-- Inserta aquí una captura de pantalla o un GIF de tu aplicación en funcionamiento -->
 
-### Tecnologías Utilizadas
-- **Backend**: Flask (Python)
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Matemáticas**: NumPy para cálculos matriciales
-- **Visualización**: SVG animado + MathJax para ecuaciones
-- **Estilos**: CSS Grid + Flexbox + Unidades responsivas
+## Sinopsis
+
+Este proyecto es una aplicación web interactiva diseñada para la **simulación y optimización de sistemas de distribución de energía en instalaciones residenciales**. Utiliza el método de análisis de mallas para calcular las corrientes en un circuito de tres lazos, representativo de una vivienda con diferentes zonas (por ejemplo, cocina, sala, dormitorios).
+
+La herramienta no solo realiza los cálculos, sino que también sirve como un recurso educativo, mostrando el desglose matemático completo del problema, desde la aplicación de la Ley de Kirchhoff de Voltajes hasta la resolución del sistema de ecuaciones matricial.
+
+El repositorio del proyecto se encuentra en GitHub: [https://github.com/runer0101/simulacion_mallas.git](https://github.com/runer0101/simulacion_mallas.git)
+
+## Características Principales
+
+*   **Simulación Interactiva:** Permite a los usuarios introducir valores personalizados para resistencias y fuentes de voltaje para ver los resultados en tiempo real.
+*   **Generación Dinámica de Diagramas:** El esquema del circuito se actualiza visualmente con los valores introducidos, gracias a la generación de imágenes con Matplotlib en el backend.
+*   **Validación de Entradas:** El formulario valida los datos en el lado del cliente y del servidor para asegurar que los parámetros sean físicamente realistas y evitar errores.
+*   **Desglose Matemático Detallado:** Muestra paso a paso la formulación de las ecuaciones de malla, la construcción de la matriz y la solución final, utilizando MathJax para una representación clara de las fórmulas.
+*   **Interpretación de Resultados:** Proporciona un análisis textual de las corrientes calculadas, indicando la dirección y la magnitud de la carga en cada malla.
+*   **API RESTful:** Incluye endpoints para realizar cálculos de forma programática y para cargar datos de ejemplo.
+*   **Interfaz de Usuario Moderna y Responsiva:** La interfaz está diseñada para ser intuitiva y accesible en diferentes dispositivos, desde ordenadores de escritorio hasta móviles.
+
+## Tecnologías Utilizadas
+
+*   **Backend:**
+    *   **Python 3**
+    *   **Flask:** Micro-framework para el servidor web y la API.
+    *   **NumPy:** Para los cálculos matriciales y la resolución del sistema de ecuaciones lineales.
+    *   **Matplotlib:** Para la generación dinámica de los diagramas del circuito.
+*   **Frontend:**
+    *   **HTML5**
+    *   **CSS3:** Para el diseño y la maquetación responsiva.
+    *   **JavaScript (ES6):** Para la interactividad del cliente, validación de formularios y llamadas a la API (Fetch).
+    *   **Jinja2:** Motor de plantillas para renderizar el contenido dinámico en el HTML.
+    *   **MathJax:** Para renderizar ecuaciones matemáticas en formato LaTeX.
 
 ## Estructura del Proyecto
 
 ```
 simulacion_mallas/
-├── app.py                    # Aplicación Flask principal
-├── simulacion_mallas.py      # Script de cálculo independiente
-├── run_app.bat              # Script de ejecución (Windows)
-├── run_app.sh               # Script de ejecución (Linux/Mac)
+├── app.py                  # Lógica principal de la aplicación Flask, rutas y cálculos.
 ├── static/
-│   ├── styles.css           # Estilos CSS responsivos
-│   └── main.js              # JavaScript interactivo
-└── templates/
-    └── index.html           # Template HTML principal
+│   ├── styles.css          # Hoja de estilos principal.
+│   └── main.js             # Scripts del lado del cliente (validación, API, etc.).
+├── templates/
+│   └── index.html          # Plantilla principal de la aplicación (HTML con Jinja2).
+└── README.md               # Este archivo.
 ```
 
-## Cómo Ejecutar
+## Instalación y Ejecución Local
 
-### Opción 1: Script automático (Windows)
+Sigue estos pasos para ejecutar el proyecto en tu máquina local.
+
+**Prerrequisitos:**
+*   Python 3.8 o superior
+*   `pip` y `venv`
+
+**1. Clonar el Repositorio**
 ```bash
-run_app.bat
+git clone https://github.com/runer0101/simulacion_mallas.git
+cd simulacion_mallas
 ```
 
-### Opción 2: Script automático (Linux/Mac)
+**2. Crear y Activar un Entorno Virtual**
+*   En Windows:
+    ```bash
+    python -m venv .venv
+    .venv\Scripts\activate
+    ```
+*   En macOS/Linux:
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
+
+**3. Instalar las Dependencias**
+
+*(Nota: Se recomienda crear un archivo `requirements.txt` con las librerías necesarias. Puedes generarlo con `pip freeze > requirements.txt` después de instalar las librerías manualmente).*
 ```bash
-chmod +x run_app.sh
-./run_app.sh
+pip install Flask numpy matplotlib
+```
+Si clonas un repositorio que ya incluye un archivo `requirements.txt`, simplemente ejecuta:
+```bash
+pip install -r requirements.txt
 ```
 
-### Opción 3: Comando directo
+**4. Ejecutar la Aplicación**
 ```bash
 python app.py
 ```
+La aplicación estará disponible en `http://127.0.0.1:5000` en tu navegador web.
 
-La aplicación estará disponible en: `http://localhost:5000`
+## Cómo Usar
 
-## Diseño Responsivo
+1.  Abre la aplicación en tu navegador.
+2.  Introduce los valores de las resistencias (R1 a R6) y los voltajes (V1 a V3) en el formulario.
+3.  Haz clic en el botón **"Calcular"**.
+4.  Los resultados de las corrientes (I1, I2, I3) aparecerán debajo del formulario, junto con una interpretación.
+5.  Más abajo en la página, encontrarás el desglose matemático completo con los valores que introdujiste.
+6.  Puedes usar el botón **"Cargar ejemplo"** para rellenar el formulario con un conjunto de datos predefinido.
 
-El proyecto utiliza un sistema de unidades completamente responsivo:
+## Autor
 
-- **vw/vh**: Para tamaños de fuente y espaciados
-- **%**: Para márgenes y dimensiones
-- **CSS Grid/Flexbox**: Para layouts adaptativos
-- **Media queries**: Para diferentes breakpoints
-
-### Breakpoints
-- **Desktop**: > 1200px
-- **Tablet**: 768px - 1200px  
-- **Mobile**: < 768px
-
-## Funcionalidades Matemáticas
-
-### Método de Mallas
-El sistema resuelve circuitos de 3 mallas usando:
-
-```
-(R1+R4+R6)I1 - R4*I2 - R6*I3 = V1
--R4*I1 + (R2+R4+R5)I2 - R5*I3 = V2  
--R6*I1 - R5*I2 + (R3+R5+R6)I3 = V3
-```
-
-### Características
-- **Matriz de coeficientes** automática
-- **Resolución con NumPy** (eliminación gaussiana)
-- **Validación de sistemas** singulares
-- **Interpretación de resultados** (sentido de corriente)
-
-## Características de UI/UX
-
-### Validación en Tiempo Real
-- Campos numéricos válidos
-- Valores positivos
-- Rangos realistas (R: 0.1-1000Ω, V: 1-500V)
-- Mensajes de error descriptivos
-
-### Animaciones
-- Electrones moviéndose por el circuito
-- Efectos de brillo en las bombillas
-- Transiciones suaves en hover
-- Animaciones de aparición de resultados
-
-### Interactividad
-- Hover en resultados resalta elementos del SVG
-- Copia de resultados al portapapeles
-- Exportación a CSV
-- Tooltips informativos
-
-## Personalización
-
-### Valores por Defecto
-```python
-default_vals = {
-    'R1': 0.5,   # Resistencia sala (Ω)
-    'R2': 0.7,   # Resistencia cocina (Ω)  
-    'R3': 0.6,   # Resistencia dormitorios (Ω)
-    'R4': 20,    # Conexión sala-cocina (Ω)
-    'R5': 15,    # Conexión cocina-dormitorios (Ω)
-    'R6': 25,    # Conexión dormitorios-sala (Ω)
-    'V1': 120,   # Voltaje sala (V)
-    'V2': 220,   # Voltaje cocina (V)
-    'V3': 120    # Voltaje dormitorios (V)
-}
-```
-
-### Colores del Tema
-- **Primario**: `#0ea5e9` (Sky Blue)
-- **Secundario**: `#38bdf8` (Light Blue)
-- **Acentos**: `#6366f1` (Indigo), `#e11d48` (Rose)
-- **Fondo**: Gradiente `#38bdf8` → `#fff`
-
-## Casos de Uso
-
-### Residencial
-- Análisis de cargas por zona
-- Dimensionamiento de conductores
-- Cálculo de caídas de tensión
-- Optimización energética
-
-### Educativo
-- Enseñanza del método de mallas
-- Visualización de conceptos eléctricos
-- Práctica con sistemas matriciales
-- Comprensión de la Ley de Kirchhoff
-
-## Mejoras Implementadas
-
-### v2.0 (Actual)
-- Arquitectura Flask refactorizada
-- Sistema de templates organizado
-- CSS completamente responsivo
-- JavaScript interactivo avanzado
-- Validación en tiempo real
-- Animaciones SVG mejoradas
-- Soporte completo MathJax
-- Exportación de datos
-
-### v1.0 (Original)
-- Cálculo básico de mallas
-- Interfaz web simple
-- SVG estático del circuito
-
-## Solución de Problemas
-
-### Error: "El sistema no tiene solución única"
-- Verificar que los valores de resistencia sean positivos
-- Asegurar que el circuito no sea singular
-- Revisar las conexiones del circuito
-
-### Error: "Valores numéricos inválidos"
-- Usar punto decimal (.) no coma (,)
-- Verificar que todos los campos estén llenos
-- Asegurar valores dentro de rangos válidos
-
-## Soporte
-
-Para reportar problemas o sugerir mejoras:
-- **Autor**: runer0101
-- **Proyecto**: Optimización de sistemas de distribución de energía
-- **Tema**: Simulación de circuitos en mallas residenciales
-
-## Licencia
-
-Proyecto académico - 2024
-Tema: Optimización de sistemas de distribución de energía en instalaciones residenciales
+*   **runer0101**
