@@ -30,11 +30,11 @@ Esta aplicación web permite el análisis matemático y la simulación visual de
 
 ### Demo en Vivo
 
-🔗 **URL del proyecto**: [https://github.com/runer0101/simulacion_mallas](https://github.com/runer0101/simulacion_mallas)
+ **URL del proyecto**: [https://github.com/runer0101/simulacion_mallas](https://github.com/runer0101/simulacion_mallas)
 
 ## Características Principales
 
-### 🎯 Funcionalidades Core
+###  Funcionalidades Core
 
 - **Cálculo Matemático Avanzado**: Resolución de sistemas de ecuaciones lineales mediante álgebra matricial
 - **Visualización Dinámica**: Generación automática de diagramas de circuito con Matplotlib
@@ -42,7 +42,7 @@ Esta aplicación web permite el análisis matemático y la simulación visual de
 - **Interpretación Inteligente**: Análisis automático de resultados con recomendaciones
 - **API REST Completa**: Endpoints para integración con sistemas externos
 
-### 🎨 Experiencia de Usuario
+###  Experiencia de Usuario
 
 - **Interfaz Responsiva**: Optimizada para dispositivos móviles y desktop
 - **Matemáticas Renderizadas**: Ecuaciones LaTeX con MathJax para claridad visual
@@ -79,15 +79,15 @@ Jinja2               # Motor de plantillas
 
 ```
 simulacion_mallas/
-├── 📁 app.py                    # 🚀 Aplicación Flask principal
-├── 📁 static/
-│   ├── 🎨 styles.css           # Estilos CSS responsivos
-│   └── ⚡ main.js              # JavaScript interactivo
-├── 📁 templates/
-│   └── 🌐 index.html           # Plantilla principal Jinja2
-├── 📁 .venv/                   # Entorno virtual Python
-├── 📄 .gitignore               # Configuración Git
-└── 📋 README.md                # Documentación del proyecto
+├──  app.py                    # 🚀 Aplicación Flask principal
+├──  static/
+│   ├──  styles.css           # Estilos CSS responsivos
+│   └──  main.js              # JavaScript interactivo
+├──  templates/
+│   └──  index.html           # Plantilla principal Jinja2
+├──  .venv/                   # Entorno virtual Python
+├──  .gitignore               # Configuración Git
+└──  README.md                # Documentación del proyecto
 ```
 
 ### Flujo de Datos
@@ -281,22 +281,22 @@ if __name__ == '__main__':
 
 ## Casos de Uso
 
-### 🏠 Análisis Residencial
+###  Análisis Residencial
 - Optimización de circuitos domésticos
 - Dimensionamiento de conductores
 - Verificación de cargas por zona
 
-### 🎓 Educación Técnica
+###  Educación Técnica
 - Enseñanza de análisis de circuitos
 - Problemas de ejemplo interactivos
 - Visualización de conceptos abstractos
 
-### 🔧 Ingeniería Profesional
+###  Ingeniería Profesional
 - Verificación de diseños eléctricos
 - Integración con software CAD
 - Análisis de factibilidad
 
-### 🔌 Investigación
+###  Investigación
 - Simulación de escenarios de carga
 - Optimización energética
 - Estudios de eficiencia
@@ -337,9 +337,9 @@ Para reportar problemas o sugerir mejoras, crear un issue en GitHub con:
 
 ### Enlaces de Interés
 
-- 📂 [Repositorio GitHub](https://github.com/runer0101/simulacion_mallas)
-- 📧 Contacto: [Crear issue](https://github.com/runer0101/simulacion_mallas/issues)
-- 📖 Documentación adicional: Ver `/templates/index.html` para explicación matemática completa
+- [Repositorio GitHub](https://github.com/runer0101/simulacion_mallas)
+- Contacto: [Crear issue](https://github.com/runer0101/simulacion_mallas/issues)
+- Documentación adicional: Ver `/templates/index.html` para explicación matemática completa
 
 ---
 
