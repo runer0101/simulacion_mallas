@@ -18,29 +18,53 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTooltips();
 
     // Lógica para el botón 'Cargar ejemplo' dentro del formulario
-    const btnEjemplo = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim() === 'Cargar ejemplo');
-    if (btnEjemplo) {
-        btnEjemplo.addEventListener('click', function(e) {
-            e.preventDefault();
-            fetch('/api/example')
-                .then(response => response.json())
-                .then(data => {
-                    for (const key in data) {
-                        const input = document.querySelector(`input[name="${key}"]`);
-                        if (input) {
-                            input.value = data[key];
-                            // Disparar eventos para validación visual
-                            input.dispatchEvent(new Event('input'));
-                            input.dispatchEvent(new Event('blur'));
+    const btnEjemplo = document.querySelector('button[onclick="cargarEjemplo()"]');
+    if (!btnEjemplo) {
+        // Fallback: buscar por texto si no existe el onclick
+        const btnEjemploFallback = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim() === 'Cargar ejemplo');
+        if (btnEjemploFallback) {
+            btnEjemploFallback.addEventListener('click', function(e) {
+                e.preventDefault();
+                fetch('/api/example')
+                    .then(response => response.json())
+                    .then(data => {
+                        for (const key in data) {
+                            const input = document.querySelector(`input[name="${key}"]`);
+                            if (input) {
+                                input.value = data[key];
+                                // Disparar eventos para validación visual
+                                input.dispatchEvent(new Event('input'));
+                                input.dispatchEvent(new Event('blur'));
+                            }
                         }
-                    }
-                })
-                .catch(err => {
-                    showError('No se pudo cargar el ejemplo.');
-                });
-        });
+                    })
+                    .catch(err => {
+                        showError('No se pudo cargar el ejemplo.');
+                    });
+            });
+        }
     }
 });
+
+// Función global para cargar ejemplo (llamada desde HTML)
+function cargarEjemplo() {
+    fetch('/api/example')
+        .then(response => response.json())
+        .then(data => {
+            for (const key in data) {
+                const input = document.querySelector(`input[name="${key}"]`);
+                if (input) {
+                    input.value = data[key];
+                    // Disparar eventos para validación visual
+                    input.dispatchEvent(new Event('input'));
+                    input.dispatchEvent(new Event('blur'));
+                }
+            }
+        })
+        .catch(err => {
+            showError('No se pudo cargar el ejemplo.');
+        });
+}
 
 // Validación en tiempo real del formulario
 function initializeFormValidation() {
@@ -180,7 +204,7 @@ function showError(message) {
 
 // Mostrar estado de cálculo
 function showCalculating() {
-    const button = document.querySelector('.btn-calcular');
+    const button = document.querySelector('button[type="submit"]');
     if (button) {
         isCalculating = true;
         button.disabled = true;

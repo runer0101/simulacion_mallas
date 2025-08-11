@@ -53,7 +53,7 @@ class MeshAnalyzer:
         """
         Calcula las corrientes de malla usando el método matricial de Kirchhoff.
         
-        Método de análisis nodal para circuito triangular residencial:
+        Método de análisis de mallas para circuito triangular residencial:
         - Malla 1: Sala/Comedor (I1)
         - Malla 2: Cocina/Lavandería (I2)  
         - Malla 3: Dormitorios (I3)
@@ -397,5 +397,13 @@ def internal_error(error):
     return render_template('index.html', **template_data), 500
 
 if __name__ == '__main__':
+    import os
+    
+    # Configuración para producción y desarrollo
+    port = int(os.environ.get('PORT', 5000))
+    debug_mode = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
+    
     logger.info("Iniciando servidor de simulación de mallas residenciales...")
-    app.run(debug=True)
+    logger.info(f"Puerto: {port}, Debug: {debug_mode}")
+    
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

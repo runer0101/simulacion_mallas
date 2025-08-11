@@ -1,0 +1,24 @@
+# Dependencias principales para Simulación de Mallas
+# Proyecto: Análisis de circuitos eléctricos residenciales
+# Autor: runer0101
+
+# Framework web
+Flask==2.3.3
+
+# Cálculos científicos y matemáticos
+numpy==1.24.3
+
+# Generación de gráficos y diagramas
+matplotlib==3.7.2
+
+# Validación de tipos (desarrollo)
+typing-extensions==4.7.1
+
+# Motor de plantillas (incluido con Flask)
+Jinja2==3.1.2
+
+# Servidor WSGI para producción (opcional)
+gunicorn==21.2.0
+
+# Utilidades adicionales
+Werkzeug==2.3.7
