@@ -69,11 +69,11 @@
             <!-- Primero: Circuito de malla -->
             <div class="circuito-svg-box">
                 <h3 class="subsection-title">Circuito de malla</h3>
-                <div class="circuit-diagram" style="text-align:center;">
+                <div class="circuit-diagram circuit-diagram-centered">
                     <img 
-                        src="{{ url_for('circuito_png') }}?R1={{ vals['R1'] }}&R2={{ vals['R2'] }}&R3={{ vals['R3'] }}&R4={{ vals['R4'] }}&R5={{ vals['R5'] }}&R6={{ vals['R6'] }}&V1={{ vals['V1'] }}&V2={{ vals['V2'] }}&V3={{ vals['V3'] }}"
+                        src="{{ url_for('web.circuito_png') }}?R1={{ vals['R1'] }}&R2={{ vals['R2'] }}&R3={{ vals['R3'] }}&R4={{ vals['R4'] }}&R5={{ vals['R5'] }}&R6={{ vals['R6'] }}&V1={{ vals['V1'] }}&V2={{ vals['V2'] }}&V3={{ vals['V3'] }}"
                         alt="Circuito de mallas generado"
-                        style="max-width:100%; border:2px solid #2563eb; border-radius:8px; background:#222;"
+                        class="circuit-image"
                     >
                 </div>
             </div>
@@ -102,25 +102,25 @@
                             </div>
                             <div class="form-row">
                                 <label for="V1">V₁ (V):</label>
-                                <input type="number" step="any" name="V1" id="V1" value="{{ vals['V1'] }}" required>
+                                <input type="number" step="any" min="0" name="V1" id="V1" value="{{ vals['V1'] }}" required>
                                 <label for="V2">V₂ (V):</label>
-                                <input type="number" step="any" name="V2" id="V2" value="{{ vals['V2'] }}" required>
+                                <input type="number" step="any" min="0" name="V2" id="V2" value="{{ vals['V2'] }}" required>
                                 <label for="V3">V₃ (V):</label>
-                                <input type="number" step="any" name="V3" id="V3" value="{{ vals['V3'] }}" required>
+                                <input type="number" step="any" min="0" name="V3" id="V3" value="{{ vals['V3'] }}" required>
                             </div>
                             <div class="form-row">
                                 <button type="submit">Calcular</button>
-                                <button type="button" onclick="cargarEjemplo()">Cargar ejemplo</button>
+                                <button type="button" id="btn-ejemplo">Cargar ejemplo</button>
                             </div>
                             {% if error %}
-                            <div class="form-error" style="color:#b91c1c; font-weight:bold; margin-top:8px;">{{ error }}</div>
+                            <div class="form-error">{{ error }}</div>
                             {% endif %}
                         </fieldset>
                     </form>
                     
                     <!-- Resultados integrados -->
                     {% if I1 is not none %}
-                    <div id="resultados" class="resultados-section" style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 30px;">
+                    <div id="resultados" class="resultados-section resultados-spacing">
                         <h4 class="subsection-title">Resultados de la simulación</h4>
                         <div class="results-grid">
                             <div class="result-card malla1">

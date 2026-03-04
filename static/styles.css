@@ -110,6 +110,23 @@ section {
     justify-content: center;
     margin: 2vw 0 1vw 0;
 }
+
+.circuit-diagram-centered {
+    text-align: center;
+}
+
+.circuit-image {
+    max-width: 100%;
+    border: 2px solid #2563eb;
+    border-radius: 8px;
+    background: #222;
+}
+
+.resultados-spacing {
+    margin-top: 30px;
+    border-top: 2px solid #e2e8f0;
+    padding-top: 30px;
+}
 /*
     Pie de página: color y alineación.
 */
@@ -443,12 +460,12 @@ section {
 }
 
 /* Estilos para validación de formularios */
-.form-group input.error {
+form.formulario input[type="number"].error {
     border-color: #ef4444;
     background-color: #fef2f2;
 }
 
-.form-group input.success {
+form.formulario input[type="number"].success {
     border-color: #22c55e;
     background-color: #f0fdf4;
 }
@@ -558,10 +575,6 @@ input[title]:hover {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.slide-in {
-    animation: slideInUp 0.6s ease-out forwards;
 }
 
 .highlight-results {
