@@ -3,30 +3,27 @@ import logging
 from flask import Blueprint, render_template, request, send_file
 
 from src.services.circuit_renderer import dibujar_circuito
-from src.services.mesh_analyzer import (
-    MeshAnalyzer,
-    get_default_values,
-    parse_form_data,
-)
+from src.services.mesh_analyzer import MeshAnalyzer, get_default_values
+from src.validators.inputs import parse_form_data
 
 logger = logging.getLogger(__name__)
-web_bp = Blueprint('web', __name__)
+web_bp = Blueprint("web", __name__)
 
 
-@web_bp.route('/', methods=['GET', 'POST'])
+@web_bp.route("/", methods=["GET", "POST"])
 def home():
     default_vals = get_default_values()
     vals = default_vals.copy()
     error = None
     I1 = I2 = I3 = A = B = interpretaciones = None
 
-    if request.method == 'POST':
+    if request.method == "POST":
         vals, error = parse_form_data(request.form, default_vals)
 
         if not error:
             try:
-                R1, R2, R3, R4, R5, R6 = vals['R1'], vals['R2'], vals['R3'], vals['R4'], vals['R5'], vals['R6']
-                V1, V2, V3 = vals['V1'], vals['V2'], vals['V3']
+                R1, R2, R3, R4, R5, R6 = vals["R1"], vals["R2"], vals["R3"], vals["R4"], vals["R5"], vals["R6"]
+                V1, V2, V3 = vals["V1"], vals["V2"], vals["V3"]
 
                 I1, I2, I3, A, B = MeshAnalyzer.calcular_corrientes(R1, R2, R3, R4, R5, R6, V1, V2, V3)
                 interpretaciones = MeshAnalyzer.interpretar_corrientes(I1, I2, I3)
@@ -39,30 +36,30 @@ def home():
                 logger.error(f"Error inesperado: {exc}")
 
     template_data = {
-        'vals': vals,
-        'error': error,
-        'I1': I1,
-        'I2': I2,
-        'I3': I3,
-        'A': A,
-        'B': B,
-        'interpretaciones': interpretaciones,
-        'default_vals': default_vals,
+        "vals": vals,
+        "error": error,
+        "I1": I1,
+        "I2": I2,
+        "I3": I3,
+        "A": A,
+        "B": B,
+        "interpretaciones": interpretaciones,
+        "default_vals": default_vals,
     }
 
-    return render_template('index.html', **template_data)
+    return render_template("index.html", **template_data)
 
 
-@web_bp.route('/circuito.png')
+@web_bp.route("/circuito.png")
 def circuito_png():
     vals = get_default_values()
     for key in vals.keys():
         val = request.args.get(key)
         if val is not None:
             try:
-                vals[key] = float(val.replace(',', '.'))
+                vals[key] = float(val.replace(",", "."))
             except Exception:
                 pass
 
     buf = dibujar_circuito(vals)
-    return send_file(buf, mimetype='image/png')
+    return send_file(buf, mimetype="image/png")
