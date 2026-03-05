@@ -80,3 +80,16 @@ Este documento organiza las mejoras recomendadas para el proyecto en un roadmap 
 3. UX y accesibilidad.
 4. Funciones avanzadas.
 5. Operación en producción.
+
+---
+
+## Actualización de estado (2026-03-05)
+
+- Fase 2 (parcial, completada en esta iteración):
+  - `create_app` y separación por módulos ya operativa.
+  - Centralización de constantes en `src/config.py`.
+  - Validaciones extraídas a `src/validators/inputs.py`.
+- Fase 3 (completada en esta iteración):
+  - Pruebas con `pytest` para validadores, lógica de mallas y endpoints API.
+  - Configuración de `ruff` y `black`.
+  - Workflow de CI en GitHub Actions para lint + formato + tests.
