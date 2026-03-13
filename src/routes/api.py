@@ -11,19 +11,36 @@ logger = logging.getLogger(__name__)
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 
+def _api_error(status: int, code: str, message: str, details: str | None = None):
+    payload = {
+        "success": False,
+        "error": {
+            "code": code,
+            "message": message,
+            "details": details,
+        },
+    }
+    return jsonify(payload), status
+
+
 @api_bp.route("/calculate", methods=["POST"])
 def api_calculate():
     try:
         if not request.is_json:
-            return jsonify({"error": "Content-Type debe ser application/json"}), 415
+            return _api_error(
+                415,
+                "UNSUPPORTED_MEDIA_TYPE",
+                "Content-Type debe ser application/json",
+                "Envia la solicitud con header Content-Type: application/json",
+            )
 
         data = request.get_json(silent=True)
         if data is None:
-            return jsonify({"error": "JSON malformado"}), 400
+            return _api_error(400, "MALFORMED_JSON", "JSON malformado")
 
         params, error = validate_api_payload(data)
         if error:
-            return jsonify({"error": error}), 400
+            return _api_error(400, "INVALID_PAYLOAD", "Datos de entrada inválidos", error)
 
         R1, R2, R3, R4, R5, R6 = (params[key] for key in REQUIRED_PARAMS[:6])
         V1, V2, V3 = (params[key] for key in REQUIRED_PARAMS[6:])
@@ -41,15 +58,15 @@ def api_calculate():
             }
         )
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        return _api_error(400, "CALCULATION_ERROR", "Error de cálculo", str(exc))
     except BadRequest:
-        return jsonify({"error": "JSON malformado"}), 400
+        return _api_error(400, "MALFORMED_JSON", "JSON malformado")
     except Exception:
         logger.exception(
             "Error en API calculate",
             extra={"method": request.method, "path": request.path, "query": request.query_string.decode("utf-8")},
         )
-        return jsonify({"error": "Error interno del servidor"}), 500
+        return _api_error(500, "INTERNAL_ERROR", "Error interno del servidor")
 
 
 @api_bp.route("/example", methods=["GET"])

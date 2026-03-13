@@ -40,7 +40,10 @@ def test_api_calculate_returns_400_when_missing_params():
     data = response.get_json()
 
     assert response.status_code == 400
-    assert "error" in data
+    assert data["success"] is False
+    assert data["error"]["code"] == "INVALID_PAYLOAD"
+    assert data["error"]["message"] == "Datos de entrada inválidos"
+    assert "Parámetros faltantes" in data["error"]["details"]
 
 
 def test_api_calculate_returns_415_when_content_type_is_not_json():
@@ -50,7 +53,9 @@ def test_api_calculate_returns_415_when_content_type_is_not_json():
     data = response.get_json()
 
     assert response.status_code == 415
-    assert data["error"] == "Content-Type debe ser application/json"
+    assert data["success"] is False
+    assert data["error"]["code"] == "UNSUPPORTED_MEDIA_TYPE"
+    assert data["error"]["message"] == "Content-Type debe ser application/json"
 
 
 def test_api_calculate_returns_400_when_json_is_malformed():
@@ -60,4 +65,6 @@ def test_api_calculate_returns_400_when_json_is_malformed():
     data = response.get_json()
 
     assert response.status_code == 400
-    assert data["error"] == "JSON malformado"
+    assert data["success"] is False
+    assert data["error"]["code"] == "MALFORMED_JSON"
+    assert data["error"]["message"] == "JSON malformado"
