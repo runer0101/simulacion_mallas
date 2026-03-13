@@ -41,3 +41,23 @@ def test_api_calculate_returns_400_when_missing_params():
 
     assert response.status_code == 400
     assert "error" in data
+
+
+def test_api_calculate_returns_415_when_content_type_is_not_json():
+    client = _client()
+
+    response = client.post("/api/calculate", data="plain text", content_type="text/plain")
+    data = response.get_json()
+
+    assert response.status_code == 415
+    assert data["error"] == "Content-Type debe ser application/json"
+
+
+def test_api_calculate_returns_400_when_json_is_malformed():
+    client = _client()
+
+    response = client.post("/api/calculate", data="{", content_type="application/json")
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == "JSON malformado"

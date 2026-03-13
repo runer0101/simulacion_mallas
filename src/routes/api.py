@@ -1,6 +1,7 @@
 import logging
 
 from flask import Blueprint, jsonify, request
+from werkzeug.exceptions import BadRequest
 
 from src.config import REQUIRED_PARAMS
 from src.services.mesh_analyzer import MeshAnalyzer, get_example_values
@@ -13,7 +14,13 @@ api_bp = Blueprint("api", __name__, url_prefix="/api")
 @api_bp.route("/calculate", methods=["POST"])
 def api_calculate():
     try:
-        data = request.get_json()
+        if not request.is_json:
+            return jsonify({"error": "Content-Type debe ser application/json"}), 415
+
+        data = request.get_json(silent=True)
+        if data is None:
+            return jsonify({"error": "JSON malformado"}), 400
+
         params, error = validate_api_payload(data)
         if error:
             return jsonify({"error": error}), 400
@@ -35,6 +42,8 @@ def api_calculate():
         )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+    except BadRequest:
+        return jsonify({"error": "JSON malformado"}), 400
     except Exception as exc:
         logger.error(f"Error en API: {exc}")
         return jsonify({"error": "Error interno del servidor"}), 500
