@@ -1,4 +1,6 @@
 import logging
+import os
+from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest
@@ -72,3 +74,25 @@ def api_calculate():
 @api_bp.route("/example", methods=["GET"])
 def api_example():
     return jsonify(get_example_values())
+
+
+@api_bp.route("/health", methods=["GET"])
+def api_health():
+    return jsonify(
+        {
+            "status": "ok",
+            "service": "simulacion_mallas",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+
+
+@api_bp.route("/version", methods=["GET"])
+def api_version():
+    version = os.environ.get("APP_VERSION", "dev")
+    return jsonify(
+        {
+            "service": "simulacion_mallas",
+            "version": version,
+        }
+    )

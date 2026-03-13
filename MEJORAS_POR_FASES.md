@@ -93,3 +93,12 @@ Este documento organiza las mejoras recomendadas para el proyecto en un roadmap 
   - Pruebas con `pytest` para validadores, lógica de mallas y endpoints API.
   - Configuración de `ruff` y `black`.
   - Workflow de CI en GitHub Actions para lint + formato + tests.
+
+## Actualización de estado (2026-03-13)
+
+- Fase 3 (refuerzo):
+  - Cobertura ampliada de errores API (415 no JSON, 400 JSON malformado).
+  - Cobertura de handlers web 404 y 500.
+- Fase 6 (avance operativo):
+  - Observabilidad con logs enriquecidos (method, path, query).
+  - Endpoints operativos: `GET /api/health` y `GET /api/version`.

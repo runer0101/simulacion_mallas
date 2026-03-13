@@ -45,6 +45,8 @@ Para apagar el servidor: Ctrl + C en la misma terminal.
 - GET / : Interfaz web
 - POST /api/calculate : Cálculo por API
 - GET /api/example : Carga ejemplo
+- GET /api/health : Healthcheck del servicio
+- GET /api/version : Versión activa del servicio
 - GET /circuito.png : Diagrama de circuito en PNG
 
 ## Rangos de validación

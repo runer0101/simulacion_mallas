@@ -20,6 +20,30 @@ def test_api_example_returns_payload():
     assert "V1" in data
 
 
+def test_api_health_returns_ok_payload():
+    client = _client()
+
+    response = client.get("/api/health")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["status"] == "ok"
+    assert data["service"] == "simulacion_mallas"
+    assert "timestamp" in data
+
+
+def test_api_version_returns_version_payload(monkeypatch):
+    monkeypatch.setenv("APP_VERSION", "1.2.3")
+    client = _client()
+
+    response = client.get("/api/version")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["service"] == "simulacion_mallas"
+    assert data["version"] == "1.2.3"
+
+
 def test_api_calculate_returns_currents_successfully():
     client = _client()
 
