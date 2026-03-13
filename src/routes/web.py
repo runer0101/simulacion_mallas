@@ -1,10 +1,10 @@
 import logging
 
-from flask import Blueprint, render_template, request, send_file
+from flask import Blueprint, abort, render_template, request, send_file
 
 from src.services.circuit_renderer import dibujar_circuito
 from src.services.mesh_analyzer import MeshAnalyzer, get_default_values
-from src.validators.inputs import parse_form_data
+from src.validators.inputs import parse_form_data, validate_parameters
 
 logger = logging.getLogger(__name__)
 web_bp = Blueprint("web", __name__)
@@ -55,11 +55,16 @@ def circuito_png():
     vals = get_default_values()
     for key in vals.keys():
         val = request.args.get(key)
-        if val is not None:
+        if val is not None and val.strip() != "":
             try:
                 vals[key] = float(val.replace(",", "."))
-            except Exception:
-                pass
+            except ValueError:
+                abort(400, description=f"{key}: Debe ser un número válido")
+
+    try:
+        validate_parameters(vals)
+    except ValueError as exc:
+        abort(400, description=str(exc))
 
     buf = dibujar_circuito(vals)
     return send_file(buf, mimetype="image/png")
