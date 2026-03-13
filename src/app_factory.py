@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 from src.routes.api import api_bp
 from src.routes.web import web_bp
@@ -42,7 +42,11 @@ def register_error_handlers(app: Flask) -> None:
 
     @app.errorhandler(500)
     def internal_error(error):
-        logger.error(f"Error interno: {error}")
+        logger.error(
+            "Error interno no controlado: %s",
+            error,
+            extra={"method": request.method, "path": request.path, "query": request.query_string.decode("utf-8")},
+        )
         template_data = {
             "vals": get_default_values(),
             "error": "Error interno del servidor (Error 500). Revisa la consola para más detalles.",

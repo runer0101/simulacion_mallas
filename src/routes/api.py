@@ -44,8 +44,11 @@ def api_calculate():
         return jsonify({"error": str(exc)}), 400
     except BadRequest:
         return jsonify({"error": "JSON malformado"}), 400
-    except Exception as exc:
-        logger.error(f"Error en API: {exc}")
+    except Exception:
+        logger.exception(
+            "Error en API calculate",
+            extra={"method": request.method, "path": request.path, "query": request.query_string.decode("utf-8")},
+        )
         return jsonify({"error": "Error interno del servidor"}), 500
 
 

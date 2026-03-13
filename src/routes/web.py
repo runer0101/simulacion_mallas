@@ -31,9 +31,16 @@ def home():
             except ValueError as exc:
                 error = str(exc)
                 logger.warning(f"Error de validación: {error}")
-            except Exception as exc:
+            except Exception:
                 error = "Error inesperado durante el cálculo. Verifica los valores ingresados."
-                logger.error(f"Error inesperado: {exc}")
+                logger.exception(
+                    "Error inesperado en home",
+                    extra={
+                        "method": request.method,
+                        "path": request.path,
+                        "query": request.query_string.decode("utf-8"),
+                    },
+                )
 
     template_data = {
         "vals": vals,

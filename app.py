@@ -9,9 +9,13 @@ logger = logging.getLogger(__name__)
 app = create_app()
 
 
+def _parse_env_bool(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    debug_mode = os.environ.get("FLASK_DEBUG", "True").lower() == "true"
+    debug_mode = _parse_env_bool(os.environ.get("FLASK_DEBUG", "False"))
 
     logger.info("Iniciando servidor de simulación de mallas residenciales...")
     logger.info(f"Puerto: {port}, Debug: {debug_mode}")
